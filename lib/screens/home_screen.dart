@@ -1,0 +1,251 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../models/project.dart';
+import '../services/launch_service.dart';
+import '../services/meteo_service.dart';
+import '../services/prefs_service.dart';
+import '../widgets/meteo_card.dart';
+import '../widgets/project_tile.dart';
+import 'drawer_screen.dart';
+import 'settings_screen.dart';
+
+/// Домашний экран VetOS: часы, метео-тайл, сетка проектов, вход в дровер.
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver {
+  final _meteo = MeteoService();
+  Timer? _clockTimer;
+  Timer? _meteoTimer;
+  DateTime _now = DateTime.now();
+  String _stationId = 'rostov';
+  int _intervalMin = 20;
+  final Map<String, bool> _installed = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+    _init();
+  }
+
+  Future<void> _init() async {
+    _stationId = await PrefsService.stationId();
+    _intervalMin = await PrefsService.intervalMin();
+    if (mounted) setState(() {});
+    await _meteo.refresh();
+    _scheduleMeteo();
+    await _checkInstalled();
+  }
+
+  void _scheduleMeteo() {
+    _meteoTimer?.cancel();
+    _meteoTimer = Timer.periodic(Duration(minutes: _intervalMin), (_) {
+      _meteo.refresh();
+    });
+  }
+
+  Future<void> _checkInstalled() async {
+    for (final p in kProjects) {
+      if (p.kind == ProjectKind.app && p.package != null) {
+        final ok = await LaunchService.isInstalled(p.package!);
+        if (mounted) setState(() => _installed[p.package!] = ok);
+      }
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Вернулись на домашний экран — подтянуть свежий срез, если протух.
+    if (state == AppLifecycleState.resumed) {
+      final f = _meteo.fetchedAt;
+      if (f == null ||
+          DateTime.now().difference(f).inMinutes >= _intervalMin) {
+        _meteo.refresh();
+      }
+      _checkInstalled();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _clockTimer?.cancel();
+    _meteoTimer?.cancel();
+    _meteo.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => SettingsScreen(
+        meteo: _meteo,
+        stationId: _stationId,
+        intervalMin: _intervalMin,
+        onChanged: (stationId, intervalMin) {
+          setState(() {
+            _stationId = stationId;
+            _intervalMin = intervalMin;
+          });
+          _scheduleMeteo();
+        },
+      ),
+    ));
+    _checkInstalled();
+  }
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  String _dateLabel() {
+    const months = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ];
+    const weekdays = [
+      'понедельник', 'вторник', 'среда', 'четверг',
+      'пятница', 'суббота', 'воскресенье'
+    ];
+    final w = weekdays[_now.weekday - 1];
+    return '$w, ${_now.day} ${months[_now.month - 1]}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = _meteo.latest?.byId(_stationId) ??
+        _meteo.latest?.stations.firstOrNull;
+    final fc = _meteo.forecast?.byId(st?.id ?? _stationId);
+    final fetchedAgo = _meteo.fetchedAt == null
+        ? 0
+        : DateTime.now().difference(_meteo.fetchedAt!).inMinutes;
+
+    return PopScope(
+      canPop: false, // лаунчер не закрывается кнопкой «назад»
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0B0F14), Color(0xFF0B0F14), Color(0xFF101820)],
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Часы + настройки.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${_two(_now.hour)}:${_two(_now.minute)}',
+                              style: const TextStyle(
+                                fontSize: 56,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.white,
+                                height: 1.0,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _dateLabel().toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                letterSpacing: 1.5,
+                                color: Colors.teal.shade200,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _openSettings,
+                        icon: Icon(Icons.tune,
+                            color: Colors.grey.shade400, size: 26),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  MeteoCard(
+                    station: st,
+                    forecastStation: fc,
+                    h0: _meteo.forecast?.h0 ?? '',
+                    loading: _meteo.loading,
+                    error: _meteo.error,
+                    fetchedAgoMin: fetchedAgo,
+                    onTap: () => LaunchService.openUrl(
+                        'https://shray77.github.io/vet-meteo/'),
+                    onRetry: _meteo.refresh,
+                  ),
+                  const SizedBox(height: 14),
+                  // Сетка проектов.
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.18,
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        for (final p in kProjects)
+                          ProjectTile(
+                            project: p,
+                            installed: _installed[p.package] ?? false,
+                            onTap: () => LaunchService.openProject(p),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Дровер всех приложений.
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const DrawerScreen()),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                            color: Colors.teal.withValues(alpha: 0.4)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18)),
+                      ),
+                      icon: const Icon(Icons.apps, color: Color(0xFF2DD4A7)),
+                      label: const Text(
+                        'ВСЕ ПРИЛОЖЕНИЯ',
+                        style: TextStyle(
+                            letterSpacing: 1.5,
+                            color: Colors.white,
+                            fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
