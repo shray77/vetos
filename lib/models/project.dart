@@ -3,6 +3,18 @@ import 'package:flutter/material.dart';
 /// Тип проекта экосистемы VetOS.
 enum ProjectKind { web, app }
 
+/// Как открывать веб-часть проекта (плитки без «полосы Chrome»).
+enum TileBrowser {
+  /// Следовать настройке «Браузер плиток» (по умолчанию — встроенный).
+  auto,
+
+  /// Всегда встроенный WebView-браузер VetOS: без тулбара, свой минимальный хром.
+  builtin,
+
+  /// Всегда Chrome Custom Tabs: логины/куки Chrome (GitLab и т.п.).
+  chrome,
+}
+
 /// Один проект экосистемы: плитка на домашнем экране VetOS.
 class Project {
   final String id;
@@ -17,6 +29,9 @@ class Project {
   /// applicationId, если проект — Android-приложение.
   final String? package;
 
+  /// Какой браузер использовать для веб-части этой плитки.
+  final TileBrowser browser;
+
   const Project({
     required this.id,
     required this.title,
@@ -26,6 +41,7 @@ class Project {
     required this.kind,
     required this.url,
     this.package,
+    this.browser = TileBrowser.auto,
   });
 }
 
@@ -66,6 +82,8 @@ const kProjects = <Project>[
     color: Color(0xFF38BDF8),
     kind: ProjectKind.web,
     url: 'https://gitlab.com/shray77/vetlearn-web',
+    // GitLab-логины — только Chrome (куки, OAuth-редиректы).
+    browser: TileBrowser.chrome,
   ),
   Project(
     id: 'voice',

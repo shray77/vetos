@@ -1,8 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/project.dart';
-
 /// Приложение из системного списка (нативный мост vetos/apps).
 class AppEntry {
   final String packageName;
@@ -21,35 +19,25 @@ class AppEntry {
         packageName: (m['package'] ?? '') as String,
         name: (m['name'] ?? '') as String,
         system: (m['system'] ?? false) as bool,
-        icon: m['icon'] is List
-            ? Uint8List.fromList(
-                (m['icon'] as List).cast<int>(),
-              )
-            : null,
+        icon: _bytes(m['icon']),
       );
+
+  /// Стандартный кодек отдаёт ByteArray сразу как Uint8List — без копий.
+  static Uint8List? _bytes(dynamic v) {
+    if (v is Uint8List) return v;
+    if (v is List) return Uint8List.fromList(List<int>.from(v));
+    return null;
+  }
 }
 
 /// Запуск проектов экосистемы и внешних приложений.
 /// Нативные операции — через собственный MethodChannel (vetos/apps),
 /// без сторонних плагинов: совместимость с любым AGP/Gradle.
+///
+/// Роутинг «встроенный браузер или Custom Tabs» живёт в HomeScreen:
+/// там есть BuildContext для перехода на BrowserScreen.
 class LaunchService {
   static const _ch = MethodChannel('vetos/apps');
-
-  /// Открывает проект: приложение — по package, веб — Custom Tabs/браузером.
-  /// Если APK не установлен — мягкий фолбэк на веб-страницу проекта.
-  static Future<void> openProject(Project p) async {
-    if (p.kind == ProjectKind.app && p.package != null) {
-      final installed = await isInstalled(p.package!);
-      if (installed) {
-        final launched = await launchPackage(p.package!);
-        if (launched) return;
-      }
-      // Не установлен или не запустился — открываем веб.
-      await openUrl(p.url);
-      return;
-    }
-    await openUrl(p.url);
-  }
 
   /// Проверяет, установлено ли приложение.
   static Future<bool> isInstalled(String package) async {

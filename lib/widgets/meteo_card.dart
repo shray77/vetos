@@ -16,6 +16,9 @@ class MeteoCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onRetry;
 
+  /// Долгий тап — открыть полный метео-радар (в браузере плиток).
+  final VoidCallback? onLongPress;
+
   const MeteoCard({
     super.key,
     required this.station,
@@ -26,6 +29,7 @@ class MeteoCard extends StatelessWidget {
     required this.fetchedAgoMin,
     required this.onTap,
     required this.onRetry,
+    this.onLongPress,
   });
 
   String _fmt(double? v, [String suffix = '']) =>
@@ -39,6 +43,7 @@ class MeteoCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -166,7 +171,7 @@ class MeteoCard extends StatelessWidget {
             Text(
               s == null
                   ? 'метео-радар · загрузка…'
-                  : '${s.name} · срез $fetchedAgoMin мин назад'
+                  : '${s.name} · срез $fetchedAgoMin мин назад · тап — станция'
                     '${forecastStation != null ? ' · прогноз от $h0 МСК' : ''}',
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),

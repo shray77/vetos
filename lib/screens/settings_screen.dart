@@ -5,6 +5,7 @@ import '../services/launch_service.dart';
 import '../services/meteo_service.dart';
 import '../services/prefs_service.dart';
 
+
 /// Настройки: станция метео-тайла, интервал обновления, о VetOS.
 class SettingsScreen extends StatefulWidget {
   final MeteoService meteo;
@@ -27,6 +28,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late String _stationId;
   late int _intervalMin;
+  bool _builtin = true;
 
   static const _intervals = [10, 20, 30, 60];
 
@@ -35,6 +37,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _stationId = widget.stationId;
     _intervalMin = widget.intervalMin;
+    PrefsService.builtinBrowser()
+        .then((v) { if (mounted) setState(() => _builtin = v); });
   }
 
   void _save() {
@@ -114,6 +118,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
+            _section('Браузер веб-плиток'),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('встроенный'),
+                  selected: _builtin,
+                  selectedColor: const Color(0xFF2DD4A7),
+                  backgroundColor: const Color(0xFF111827),
+                  labelStyle: TextStyle(
+                    color: _builtin
+                        ? const Color(0xFF0B0F14)
+                        : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onSelected: (_) => _setBrowser(true),
+                ),
+                ChoiceChip(
+                  label: const Text('Chrome (полоса)'),
+                  selected: !_builtin,
+                  selectedColor: const Color(0xFF2DD4A7),
+                  backgroundColor: const Color(0xFF111827),
+                  labelStyle: TextStyle(
+                    color: !_builtin
+                        ? const Color(0xFF0B0F14)
+                        : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onSelected: (_) => _setBrowser(false),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                _builtin
+                    ? 'веб-плитки открываются внутри VetOS — без тулбара Chrome; '
+                        'внутри есть кнопка «в Chrome» (VetLearn всегда в Chrome — там логины)'
+                    : 'веб-плитки открываются Chrome Custom Tabs — с полосой и куками Chrome',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              ),
+            ),
             _section('Интервал обновления метео'),
             Wrap(
               spacing: 8,
@@ -146,8 +192,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _section('О VetOS'),
             _aboutTile(
-              'VetOS 0.1.0 · ru.shray77.vetos',
-              'лаунчер-хаб вет-экосистемы: 6 проектов, живой метео-тайл THI',
+              'VetOS 0.2.0 · ru.shray77.vetos',
+              'лаунчер-хаб вет-экосистемы: 6 проектов, живой метео-тайл THI, встроенный браузер',
             ),
             _aboutTile(
               'Источник метео',
@@ -163,6 +209,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  void _setBrowser(bool v) {
+    setState(() => _builtin = v);
+    PrefsService.setBuiltinBrowser(v);
   }
 
   Widget _section(String title) => Padding(

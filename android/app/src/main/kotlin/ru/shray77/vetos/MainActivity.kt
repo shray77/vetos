@@ -8,10 +8,14 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.thread
 
 /**
  * VetOS: нативный мост для лаунчера (вместо устаревших плагинов).
@@ -20,34 +24,49 @@ import java.io.ByteArrayOutputStream
  *  - listApps {includeSystem}  → список запускаемых приложений с иконками (PNG bytes)
  *  - isInstalled {package}     → установлен ли пакет
  *  - launch {package}          → запуск по package name (launch intent)
+ *
+ * ВАЖНО (v0.2.0): listApps — тяжёлая работа (query + binder + PNG-сжатие каждой
+ * иконки). Раньше выполнялась в главном потоке → ANR при открытии дровера.
+ * Теперь: рабочий поток + кэш иконок по пакету + даунскейл до 72px.
  */
 class MainActivity : FlutterActivity() {
 
     private val channelName = "vetos/apps"
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    /** PNG-иконки по пакету: повторное открытие дровера — мгновенное. */
+    private val iconCache = ConcurrentHashMap<String, ByteArray>()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
-                try {
-                    when (call.method) {
-                        "listApps" -> {
-                            val includeSystem =
-                                call.argument<Boolean>("includeSystem") ?: true
-                            result.success(listApps(includeSystem))
+                when (call.method) {
+                    "listApps" -> {
+                        val includeSystem =
+                            call.argument<Boolean>("includeSystem") ?: true
+                        // Главный поток не трогаем — только постим ответ.
+                        thread(name = "vetos-list-apps") {
+                            val apps = try {
+                                listApps(includeSystem)
+                            } catch (e: Exception) {
+                                mainHandler.post {
+                                    result.error("NATIVE_ERR", e.message, null)
+                                }
+                                return@thread
+                            }
+                            mainHandler.post { result.success(apps) }
                         }
-                        "isInstalled" -> {
-                            val pkg = call.argument<String>("package") ?: ""
-                            result.success(isInstalled(pkg))
-                        }
-                        "launch" -> {
-                            val pkg = call.argument<String>("package") ?: ""
-                            result.success(launchApp(pkg))
-                        }
-                        else -> result.notImplemented()
                     }
-                } catch (e: Exception) {
-                    result.error("NATIVE_ERR", e.message, null)
+                    "isInstalled" -> {
+                        val pkg = call.argument<String>("package") ?: ""
+                        result.success(isInstalled(pkg))
+                    }
+                    "launch" -> {
+                        val pkg = call.argument<String>("package") ?: ""
+                        result.success(launchApp(pkg))
+                    }
+                    else -> result.notImplemented()
                 }
             }
     }
@@ -96,13 +115,12 @@ class MainActivity : FlutterActivity() {
                 val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
                 if (isSystem && !includeSystem) continue
                 val name = pm.getApplicationLabel(appInfo).toString()
-                val iconBytes = drawableToPng(pm.getApplicationIcon(appInfo))
                 out.add(
                     mapOf(
                         "package" to pkg,
                         "name" to name,
                         "system" to isSystem,
-                        "icon" to iconBytes
+                        "icon" to iconFor(pkg, appInfo)
                     )
                 )
             } catch (_: Exception) {
@@ -112,9 +130,25 @@ class MainActivity : FlutterActivity() {
         return out
     }
 
+    /**
+     * Иконка приложения PNG с кэшем. null в кэше храним пустым массивом
+     * (ConcurrentHashMap не принимает null-значения).
+     */
+    private fun iconFor(pkg: String, appInfo: ApplicationInfo): ByteArray? {
+        val cached = iconCache[pkg]
+        if (cached != null) return if (cached.isNotEmpty()) cached else null
+        val bytes = try {
+            drawableToPng(packageManager.getApplicationIcon(appInfo))
+        } catch (_: Exception) {
+            null
+        }
+        iconCache[pkg] = bytes ?: ByteArray(0)
+        return bytes
+    }
+
     private fun drawableToPng(d: Drawable?): ByteArray? {
         if (d == null) return null
-        val bmp = if (d is BitmapDrawable && d.bitmap != null) {
+        val src = if (d is BitmapDrawable && d.bitmap != null) {
             d.bitmap
         } else {
             val w = if (d.intrinsicWidth > 0) d.intrinsicWidth else 96
@@ -123,12 +157,34 @@ class MainActivity : FlutterActivity() {
             d.draw(Canvas(b))
             b
         }
+        if (src.width <= 0 || src.height <= 0) return null
+        val bmp = downscale(src, ICON_PX)
         return try {
             val stream = ByteArrayOutputStream()
-            bmp.compress(Bitmap.CompressFormat.PNG, 90, stream)
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
             stream.toByteArray()
         } catch (_: OutOfMemoryError) {
             null
         }
+    }
+
+    /**
+     * Дроверу хватает 44dp — иконки 72px: PNG-сжатие и канал в разы легче,
+     * адаптивные иконки (до 432px) не убивают рабочий поток.
+     */
+    private fun downscale(b: Bitmap, maxPx: Int): Bitmap {
+        val m = maxOf(b.width, b.height)
+        if (m <= maxPx) return b
+        val k = maxPx.toFloat() / m
+        return Bitmap.createScaledBitmap(
+            b,
+            (b.width * k).toInt().coerceAtLeast(1),
+            (b.height * k).toInt().coerceAtLeast(1),
+            true
+        )
+    }
+
+    companion object {
+        private const val ICON_PX = 72
     }
 }

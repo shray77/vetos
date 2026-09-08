@@ -8,6 +8,8 @@ import '../services/meteo_service.dart';
 import '../services/prefs_service.dart';
 import '../widgets/meteo_card.dart';
 import '../widgets/project_tile.dart';
+import '../widgets/station_sheet.dart';
+import 'browser_screen.dart';
 import 'drawer_screen.dart';
 import 'settings_screen.dart';
 
@@ -106,6 +108,52 @@ class _HomeScreenState extends State<HomeScreen>
 
   String _two(int n) => n.toString().padLeft(2, '0');
 
+  /// Открывает проект: APK — по пакету (фолбэк на веб), веб — браузером плиток.
+  Future<void> _openProject(Project p) async {
+    if (p.kind == ProjectKind.app && p.package != null) {
+      if (await LaunchService.isInstalled(p.package!) &&
+          await LaunchService.launchPackage(p.package!)) {
+        return;
+      }
+    }
+    await _openWeb(p.url, p.title, mode: p.browser);
+  }
+
+  /// Веб-адрес: встроенный браузер (без полосы Chrome) или Custom Tabs.
+  /// Настройку читаем при каждом тапе — смена в настройках действует сразу.
+  Future<void> _openWeb(String url, String title,
+      {TileBrowser mode = TileBrowser.auto}) async {
+    final useBuiltin = mode == TileBrowser.builtin ||
+        (mode == TileBrowser.auto && await PrefsService.builtinBrowser());
+    if (!mounted) return;
+    if (useBuiltin) {
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => BrowserScreen(url: url, title: title),
+      ));
+      return;
+    }
+    await LaunchService.openUrl(url);
+  }
+
+  /// Тап по метео-карточке — быстрый выбор станции (Таганрог, Новочеркасск…).
+  Future<void> _pickStation() async {
+    final stations = _meteo.latest?.stations;
+    if (stations == null || stations.isEmpty) {
+      // Радар молчит — хотя бы откроем сайт.
+      await _openWeb('https://shray77.github.io/vet-meteo/', 'Метео-Радар');
+      return;
+    }
+    final picked = await showStationSheet(
+      context,
+      stations: stations,
+      currentId: _stationId,
+    );
+    if (picked != null && picked.id != _stationId) {
+      await PrefsService.setStationId(picked.id);
+      if (mounted) setState(() => _stationId = picked.id);
+    }
+  }
+
   String _dateLabel() {
     const months = [
       'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
@@ -191,8 +239,9 @@ class _HomeScreenState extends State<HomeScreen>
                     loading: _meteo.loading,
                     error: _meteo.error,
                     fetchedAgoMin: fetchedAgo,
-                    onTap: () => LaunchService.openUrl(
-                        'https://shray77.github.io/vet-meteo/'),
+                    onTap: _pickStation,
+                    onLongPress: () => _openProject(
+                        kProjects.firstWhere((p) => p.id == 'meteo')),
                     onRetry: _meteo.refresh,
                   ),
                   const SizedBox(height: 14),
@@ -209,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ProjectTile(
                             project: p,
                             installed: _installed[p.package] ?? false,
-                            onTap: () => LaunchService.openProject(p),
+                            onTap: () => _openProject(p),
                           ),
                       ],
                     ),
