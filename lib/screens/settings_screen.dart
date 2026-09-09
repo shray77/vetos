@@ -6,7 +6,7 @@ import '../services/meteo_service.dart';
 import '../services/prefs_service.dart';
 
 
-/// Настройки: станция метео-тайла, интервал обновления, о VetOS.
+/// Настройки: станция метео-тайла, живая лента, интервал, браузер плиток.
 class SettingsScreen extends StatefulWidget {
   final MeteoService meteo;
   final String stationId;
@@ -30,7 +30,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late int _intervalMin;
   bool _builtin = true;
 
+  /// Тумблеры живой ленты: outlook / outbreaks / verify / weekly.
+  final Map<String, bool> _feed = {
+    'outlook': true,
+    'outbreaks': true,
+    'verify': true,
+    'weekly': false,
+  };
+
   static const _intervals = [10, 20, 30, 60];
+
+  static const _feedTitles = {
+    'outlook': 'Прогноз 7 дней · THI',
+    'outbreaks': 'Вспышки · ВетКарта',
+    'verify': 'Прогноз vs факт',
+    'weekly': 'Недельный дайджест',
+  };
+
+  static const _feedSubs = {
+    'outlook': 'outlook.json · по выбранной станции',
+    'outbreaks': 'outbreaks.json · Ростовская обл., с 2019',
+    'verify': 'verify.json · ретро-проверка, MAE THI',
+    'weekly': 'weekly.json · дайджест по архиву радара',
+  };
 
   @override
   void initState() {
@@ -39,6 +61,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _intervalMin = widget.intervalMin;
     PrefsService.builtinBrowser()
         .then((v) { if (mounted) setState(() => _builtin = v); });
+    for (final id in _feed.keys) {
+      PrefsService.feedEnabled(id)
+          .then((v) { if (mounted) setState(() => _feed[id] = v); });
+    }
   }
 
   void _save() {
@@ -160,6 +186,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
               ),
             ),
+            _section('Живая лента экосистемы'),
+            for (final id in _feed.keys)
+              SwitchListTile(
+                value: _feed[id] ?? true,
+                onChanged: (v) {
+                  setState(() => _feed[id] = v);
+                  PrefsService.setFeedEnabled(id, v);
+                },
+                activeThumbColor: const Color(0xFF2DD4A7),
+                dense: true,
+                title: Text(_feedTitles[id] ?? id,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                subtitle: Text(_feedSubs[id] ?? '',
+                    style: TextStyle(
+                        color: Colors.grey.shade500, fontSize: 12)),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'карточки тянутся из git-репозиториев проектов '
+                '(raw.githubusercontent), как метео-тайл — без серверов и кабинетов',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              ),
+            ),
             _section('Интервал обновления метео'),
             Wrap(
               spacing: 8,
@@ -192,14 +245,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _section('О VetOS'),
             _aboutTile(
-              'VetOS 0.2.0 · ru.shray77.vetos',
-              'лаунчер-хаб вет-экосистемы: 6 проектов, живой метео-тайл THI, встроенный браузер',
+              'VetOS 0.3.0 · ru.shray77.vetos',
+              'лаунчер-хаб вет-экосистемы: 6 проектов, живой метео-тайл, лента данных, встроенный браузер',
             ),
             _aboutTile(
               'Источник метео',
               'CI-бот vet-meteo: срезы каждые ~20 мин (метроном Actions)',
               onTap: () => LaunchService.openUrl(
                   'https://github.com/shray77/vet-meteo'),
+            ),
+            _aboutTile(
+              'Конвенция ленты',
+              'как любой проект экосистемы может отдать данные лаунчеру: docs/vetos-feeds.md',
+              onTap: () => LaunchService.openUrl(
+                  'https://github.com/shray77/vetos/blob/main/docs/vetos-feeds.md'),
             ),
             _aboutTile(
               'Сделать домашним экраном',

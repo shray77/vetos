@@ -45,8 +45,10 @@ android {
         }
     }
 
-    // Не стриппим .so — не нужен NDK (сборка на слабых машинах и в CI без NDK).
-    // Для sideload-APK рост размера незначителен.
+    // Сборка без полного NDK: по пути ndk/<ver>/.../bin лежат шимы
+    // llvm-strip/llvm-objcopy/llvm-readelf → multiarch GNU binutils
+    // (apt-get download binutils-multiarch; см. README «Как собрать»).
+    // Без стриппинга APK раздувается до ~500 МБ, со стриппингом — ~56 МБ.
 }
 
 kotlin {
