@@ -1,8 +1,12 @@
-name: Build APK
+name: Build & Release APK
 
-# Сборка release-APK под ARM (Oppo A18 / Helio G35 = arm64-v8a) на каждый
-# push в main с тегом v*, по запросу вручную и на PR (без публикации).
-# Артефакты — split-per-ABI: arm64-v8a (~25 МБ) и armeabi-v7a (~20 МБ).
+# Автоматическая сборка + релиз:
+#  - push в main → собирает APK, обновляет rolling-релиз "latest" (prerelease)
+#  - push тега v* → собирает APK, создаёт стабильный релиз с этим тегом
+#  - pull_request → только сборка, без публикации (проверка что не сломалось)
+#  - workflow_dispatch → ручной запуск, ведёт себя как push в main
+#
+# Артефакты — split-per-ABI: arm64-v8a (~25 МБ) + armeabi-v7a (~20 МБ).
 on:
   push:
     branches: [main]
@@ -11,7 +15,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Отменяем предыдущие запуски того же пуша — экономим минуты CI.
 concurrency:
   group: build-apk-${{ github.ref }}
   cancel-in-progress: true
@@ -20,6 +23,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      is_tag: ${{ steps.meta.outputs.is_tag }}
+      tag_name: ${{ steps.meta.outputs.tag_name }}
 
     steps:
       - name: Checkout
@@ -43,39 +50,70 @@ jobs:
       - name: Download pub deps
         run: flutter pub get
 
+      - name: Read version from pubspec
+        id: meta
+        # Извлекаем version из pubspec.yaml и определяем тип релиза:
+        # тег v* → стабильный релиз с этим тегом; иначе → rolling "latest".
+        run: |
+          VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d '+' -f 1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "is_tag=true" >> "$GITHUB_OUTPUT"
+            echo "tag_name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_tag=false" >> "$GITHUB_OUTPUT"
+            echo "tag_name=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build split-per-ABI release APKs
-        # split-per-ABI: arm64-v8a (Oppo A18 и все современные ARM) + armeabi-v7a.
-        # x86_64 выпилен в build.gradle.kts (splits.abi), так что двух APK хватит.
         run: flutter build apk --release --split-per-abi
 
       - name: List built APKs
         run: ls -lh build/app/outputs/flutter-apk/
 
-      - name: Upload arm64-v8a APK
+      - name: Rename APKs
+        # Имена файлов едут в релиз — должны быть осмысленными.
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ steps.meta.outputs.tag_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          cd build/app/outputs/flutter-apk
+          mv app-arm64-v8a-release.apk "VetOS-${VERSION}-arm64-v8a.apk"
+          mv app-armeabi-v7a-release.apk "VetOS-${VERSION}-armeabi-v7a.apk"
+          # Короткий SHA в имени для rolling-релиза «latest», чтобы отличать сборки.
+          echo "##[set-output name=sha_short;]$(echo ${SHA} | cut -c1-7)"
+          ls -lh
+
+      - name: Upload arm64-v8a artifact
         uses: actions/upload-artifact@v4
         with:
           name: VetOS-arm64-v8a
-          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          path: build/app/outputs/flutter-apk/VetOS-*-arm64-v8a.apk
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload armeabi-v7a APK
+      - name: Upload armeabi-v7a artifact
         uses: actions/upload-artifact@v4
         with:
           name: VetOS-armeabi-v7a
-          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          path: build/app/outputs/flutter-apk/VetOS-*-armeabi-v7a.apk
           if-no-files-found: warn
           retention-days: 30
 
-  # Релиз на GitHub Releases — только для тегов v*.
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Релиз только на push в main или тег v* — НЕ на PR и НЕ на ручной запуск
+    # от PR-ветки. workflow_dispatch от main-ветки тоже проходит.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download arm64 APK
         uses: actions/download-artifact@v4
         with:
@@ -88,19 +126,66 @@ jobs:
           name: VetOS-armeabi-v7a
           path: artifacts/
 
-      - name: Rename APKs for release
+      - name: Prepare release metadata
+        id: rel
         env:
-          TAG: ${{ github.ref_name }}
+          IS_TAG: ${{ needs.build.outputs.is_tag }}
+          TAG: ${{ needs.build.outputs.tag_name }}
+          VERSION: ${{ needs.build.outputs.version }}
+          SHA: ${{ github.sha }}
         run: |
-          cd artifacts
-          mv app-arm64-v8a-release.apk "VetOS-${TAG}-arm64-v8a.apk"
-          mv app-armeabi-v7a-release.apk "VetOS-${TAG}-armeabi-v7a.apk" || true
-          ls -lh
+          if [[ "$IS_TAG" == "true" ]]; then
+            # Стабильный релиз для тега v*
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "name=VetOS $TAG" >> "$GITHUB_OUTPUT"
+            echo "body<<EOF" >> "$GITHUB_OUTPUT"
+            echo "## VetOS $TAG ($VERSION)" >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "Стабильный релиз. Сборка: \`${SHA:0:7}\`." >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "### APK" >> "$GITHUB_OUTPUT"
+            echo "- \`VetOS-${VERSION}-arm64-v8a.apk\` — для Oppo A18 и всех современных ARM-смартфонов (~25 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \`VetOS-${VERSION}-armeabi-v7a.apk\` — для старых ARMv7-устройств (~20 МБ)" >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "Полный список изменений — в [CHANGES.md](CHANGES.md)." >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "make_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            # Rolling-релиз "latest" — обновляется на каждый push в main
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "name=VetOS v$VERSION (latest build)" >> "$GITHUB_OUTPUT"
+            echo "body<<EOF" >> "$GITHUB_OUTPUT"
+            echo "## VetOS v$VERSION — latest build" >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "Свежая сборка с \`main\` (\`${SHA:0:7}\`)." >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "### APK" >> "$GITHUB_OUTPUT"
+            echo "- \`VetOS-${VERSION}-arm64-v8a.apk\` — для Oppo A18 / Helio G35 / всех современных ARM (~25 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \`VetOS-${VERSION}-armeabi-v7a.apk\` — для старых ARMv7 (~20 МБ)" >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "> Это автоматический rolling-релиз. Для стабильной версии — см. [Releases](../../releases)." >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "make_latest=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Create GitHub Release
+      - name: Delete existing latest release (rolling)
+        # softprops/action-gh-release не умеет «заменить» релиз с тем же тегом —
+        # старые ассеты остаются. Удаляем и тег, и релиз перед повторной публикацией.
+        if: needs.build.outputs.is_tag != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || echo "no previous latest release"
+          git push origin :refs/tags/latest || echo "no previous latest tag"
+
+      - name: Create / update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: VetOS ${{ github.ref_name }}
-          generate_release_notes: true
+          tag_name: ${{ steps.rel.outputs.tag }}
+          name: ${{ steps.rel.outputs.name }}
+          body: ${{ steps.rel.outputs.body }}
+          prerelease: ${{ steps.rel.outputs.prerelease }}
+          make_latest: ${{ steps.rel.outputs.make_latest }}
           files: artifacts/*.apk
