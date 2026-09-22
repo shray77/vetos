@@ -66,6 +66,8 @@ jobs:
           fi
 
       - name: Build split-per-ABI release APKs
+        # org.gradle.java.home закомментирован в gradle.properties —
+        # Gradle подхватывает JDK от actions/setup-java через JAVA_HOME.
         run: flutter build apk --release --split-per-abi
 
       - name: List built APKs
