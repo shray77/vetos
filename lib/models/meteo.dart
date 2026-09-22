@@ -65,6 +65,20 @@ class MeteoStation {
     if (wdir == null) return '—';
     return labels[((wdir! % 360) / 45).floor() % 8];
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        't': t,
+        'rh': rh,
+        'wind': wind,
+        'wdir': wdir,
+        'thi': thi,
+        'thiAdj': thiAdj,
+        'thiMaxToday': thiMaxToday,
+        'thiMax7': thiMax7,
+        'brd': brd,
+      };
 }
 
 /// Срез data/latest.json целиком.
@@ -88,6 +102,11 @@ class MeteoSlice {
     }
     return null;
   }
+
+  Map<String, dynamic> toJson() => {
+        'generatedAt': generatedAt.toIso8601String(),
+        'stations': stations.map((s) => s.toJson()).toList(),
+      };
 }
 
 /// Станция из data/forecast.json (массивы по часам на 48 ч).
@@ -123,6 +142,16 @@ class ForecastStation {
         wind: _arr(j['wind']),
         pr: _arr(j['pr']),
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'thi': thi,
+        'adj': adj,
+        't': t,
+        'wind': wind,
+        'pr': pr,
+      };
 }
 
 /// data/forecast.json целиком.
@@ -155,4 +184,11 @@ class Forecast {
     }
     return null;
   }
+
+  Map<String, dynamic> toJson() => {
+        'generatedAt': generatedAt.toIso8601String(),
+        'h0': h0,
+        'hours': hours,
+        'stations': stations.map((s) => s.toJson()).toList(),
+      };
 }

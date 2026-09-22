@@ -7,6 +7,7 @@ import '../services/feed_service.dart';
 import '../services/launch_service.dart';
 import '../services/meteo_service.dart';
 import '../services/prefs_service.dart';
+import '../widgets/clock_widget.dart';
 import '../widgets/feed_cards.dart';
 import '../widgets/meteo_card.dart';
 import '../widgets/project_tile.dart';
@@ -27,9 +28,7 @@ class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver {
   final _meteo = MeteoService();
   final _feeds = FeedService();
-  Timer? _clockTimer;
   Timer? _meteoTimer;
-  DateTime _now = DateTime.now();
   String _stationId = 'rostov';
   int _intervalMin = 20;
   final Map<String, bool> _installed = {};
@@ -41,9 +40,6 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
-    });
     _init();
   }
 
@@ -94,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _clockTimer?.cancel();
     _meteoTimer?.cancel();
     _meteo.dispose();
     _feeds.dispose();
@@ -127,8 +122,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
     if (mounted) setState(() {});
   }
-
-  String _two(int n) => n.toString().padLeft(2, '0');
 
   /// Открывает проект: APK — по пакету (фолбэк на веб), веб — браузером плиток.
   Future<void> _openProject(Project p) async {
@@ -174,19 +167,6 @@ class _HomeScreenState extends State<HomeScreen>
       await PrefsService.setStationId(picked.id);
       if (mounted) setState(() => _stationId = picked.id);
     }
-  }
-
-  String _dateLabel() {
-    const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ];
-    const weekdays = [
-      'понедельник', 'вторник', 'среда', 'четверг',
-      'пятница', 'суббота', 'воскресенье'
-    ];
-    final w = weekdays[_now.weekday - 1];
-    return '$w, ${_now.day} ${months[_now.month - 1]}';
   }
 
   /// Горизонтальная лента живых карточек (null — если всё выключено/пусто).
@@ -260,36 +240,12 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Часы + настройки (закреплены сверху).
+                  // Часы (собственный StatefulWidget — тайлер 1с НЕ дёргает
+                  // весь HomeScreen) + кнопка настроек.
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${_two(_now.hour)}:${_two(_now.minute)}',
-                              style: const TextStyle(
-                                fontSize: 56,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white,
-                                height: 1.0,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _dateLabel().toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                letterSpacing: 1.5,
-                                color: Colors.teal.shade200,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const Expanded(child: ClockWidget()),
                       IconButton(
                         onPressed: _openSettings,
                         icon: Icon(Icons.tune,

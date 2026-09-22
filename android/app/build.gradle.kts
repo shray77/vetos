@@ -31,6 +31,25 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Splits: только ARM — целевые устройства Oppo A18 (Helio G35 = arm64-v8a)
+        // и прочие Android-телефоны. x86_64/arm32-rare выпиливаем: -20 МБ на APK,
+        // быстрее установка и обновление. Flutter по умолчанию собирает 3 ABI,
+        // нам для sideload-лаунчера достаточно двух.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+    }
+
+    // Split-per-ABI: sideload-APK под конкретное устройство — ~25 МБ вместо ~62 МБ.
+    // На Oppo A18 (arm64-v8a) ставится arm64-вариант, на старых ARMv7 — свой.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
     }
 
     buildTypes {

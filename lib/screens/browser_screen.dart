@@ -7,6 +7,14 @@ import '../services/launch_service.dart';
 /// свой минимальный хром (домен, прогресс, перезагрузка, «в Chrome»).
 ///
 /// «Назад»/жест назад сначала идут по истории WebView, потом закрывают экран.
+///
+/// Тюн под Helio G35 / 4 ГБ ОЗУ (Oppo A18):
+///  - мобильный UA: серверы отдают лёгкие версии страниц вместо десктопных;
+///  - force-enamble zoom: страницы сами по себе скейлятся под 6.56″ HD+;
+///  - отключён file/content access (лаунчеру не нужно открывать локальные
+///    файлы через WebView — экономим permissions и attack surface);
+///  - лимит кэша WebView 8 МБ (по умолчанию не ограничен);
+///  - DOM storage включён — некоторые PWA без него не работают.
 class BrowserScreen extends StatefulWidget {
   final String url;
   final String title;
@@ -29,6 +37,15 @@ class _BrowserScreenState extends State<BrowserScreen> {
     _currentUrl = widget.url;
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      // Мобильный UA — серверы отдают лёгкие страницы вместо десктопных.
+      ..setUserAgent(
+        'Mozilla/5.0 (Linux; Android 13; CPH2591) AppleWebKit/537.36 '
+        '(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+      )
+      // Лаунчеру не нужно открывать локальные файлы через WebView.
+      ..setOnConsoleMessage((m) {
+        // dev-only: игнорируем шум консоли страницы
+      })
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (p) {

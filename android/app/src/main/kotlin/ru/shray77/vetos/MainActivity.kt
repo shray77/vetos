@@ -14,7 +14,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.ConcurrentHashMap
+import java.util.LinkedHashMap
 import kotlin.concurrent.thread
 
 /**
@@ -34,8 +34,24 @@ class MainActivity : FlutterActivity() {
     private val channelName = "vetos/apps"
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    /** PNG-иконки по пакету: повторное открытие дровера — мгновенное. */
-    private val iconCache = ConcurrentHashMap<String, ByteArray>()
+    /**
+     * PNG-иконки по пакету: повторное открытие дровера — мгновенное.
+     *
+     * LRU-семантика: после MAX_CACHE_ENTRIES новых пакетов старые
+     * вытесняются — память не течёт на телефонах с кучей установленных
+     * приложений (на 4 ГБ ОЗУ критично).
+     */
+    private val iconCache = object : LinkedHashMap<String, ByteArray>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<String, ByteArray>?): Boolean {
+            return size > MAX_CACHE_ENTRIES
+        }
+    }
+
+    /**
+     * Доступ к LRU-кэшу из разных потоков (listApps в рабочем потоке,
+     * isInstalled может прийти из главного). Синхронизируем на самом кэше.
+     */
+    private val iconCacheLock = Any()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -131,22 +147,30 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * Иконка приложения PNG с кэшем. null в кэше храним пустым массивом
-     * (ConcurrentHashMap не принимает null-значения).
+     * Иконка приложения WebP lossy с LRU-кэшем. null в кэше храним пустым
+     * массивом (LinkedHashMap не принимает null-значения).
+     *
+     * WebP lossy q=80 вместо PNG: размер иконки ~2-4 КБ вместо ~6-10 КБ
+     * (PNG без альфа-прозрачности и так большой), Flutter-сторона декодит
+     * WebP быстрее — меньше GC-пауз на Helio G35.
      */
     private fun iconFor(pkg: String, appInfo: ApplicationInfo): ByteArray? {
-        val cached = iconCache[pkg]
-        if (cached != null) return if (cached.isNotEmpty()) cached else null
+        synchronized(iconCacheLock) {
+            val cached = iconCache[pkg]
+            if (cached != null) return if (cached.isNotEmpty()) cached else null
+        }
         val bytes = try {
-            drawableToPng(packageManager.getApplicationIcon(appInfo))
+            drawableToWebp(packageManager.getApplicationIcon(appInfo))
         } catch (_: Exception) {
             null
         }
-        iconCache[pkg] = bytes ?: ByteArray(0)
+        synchronized(iconCacheLock) {
+            iconCache[pkg] = bytes ?: ByteArray(0)
+        }
         return bytes
     }
 
-    private fun drawableToPng(d: Drawable?): ByteArray? {
+    private fun drawableToWebp(d: Drawable?): ByteArray? {
         if (d == null) return null
         val src = if (d is BitmapDrawable && d.bitmap != null) {
             d.bitmap
@@ -161,7 +185,14 @@ class MainActivity : FlutterActivity() {
         val bmp = downscale(src, ICON_PX)
         return try {
             val stream = ByteArrayOutputStream()
-            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            // WebP lossy q=80: -50..70% размера относительно PNG,
+            // декодируется Flutter-стороне быстрее.
+            if (Build.VERSION.SDK_INT >= 30) {
+                bmp.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, stream)
+            } else {
+                @Suppress("DEPRECATION")
+                bmp.compress(Bitmap.CompressFormat.WEBP, 80, stream)
+            }
             stream.toByteArray()
         } catch (_: OutOfMemoryError) {
             null
@@ -186,5 +217,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val ICON_PX = 72
+        /** LRU-лимит: на телефоне с 200+ приложениями не держим все иконки. */
+        private const val MAX_CACHE_ENTRIES = 96
     }
 }

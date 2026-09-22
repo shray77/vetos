@@ -3,11 +3,11 @@
 Android-лаунчер: домашний экран с живым метео-тайлом THI и плитками шести
 проектов вет-контура shray77. Нажимаешь Home — попадаешь в свою экосистему.
 
-**applicationId:** `ru.shray77.vetos` · v0.3.0 · sideload-APK (debug-подпись)
+**applicationId:** `ru.shray77.vetos` · v0.3.1 · sideload-APK (debug-подпись)
 
 ## Скачать
 
-- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.3.0-release.apk` (~62 МБ, 3 ABI)
+- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.3.1-arm64-v8a.apk` (~25 МБ, split-per-ABI)
 - Исходники — этот репозиторий; архивом — там же, в аттачах релиза.
 
 ## Что внутри
@@ -47,7 +47,7 @@ Android-лаунчер: домашний экран с живым метео-т�
 | meteo | Метео-Радар | веб | https://shray77.github.io/vet-meteo/ |
 | heatmap | ВетКарта | веб | https://shray77.github.io/vet-heatmap/ |
 | insilico | VetInSilico | веб | https://shray77.github.io/vet-insilico/ |
-| learn | VetLearn AI | веб | https://gitlab.com/shray77/vetlearn-web |
+| learn | VetLearn AI | веб | https://t1h1h8e10p40-d.space-z.ai/ |
 | voice | VetVoice | APK | `com.vetvoice.vetvoice` → фолбэк github.com/shray77/vetvoice |
 | eco | VetEco (vetvoice-rag) | APK | `com.veteco.app` → фолбэк github.com/shray77/vetvoice-rag |
 
@@ -68,10 +68,14 @@ Android-лаунчер: домашний экран с живым метео-т�
 
 ```bash
 flutter pub get
-flutter build apk --release        # универсальный APK (3 ABI, ~56 МБ)
-# или тоньше:
-flutter build apk --release --split-per-abi   # arm64-v8a ~25 МБ
+flutter build apk --release        # split-per-ABI: arm64-v8a + armeabi-v7a
+# или явно один ABI (для Oppo A18 / Helio G35 — arm64-v8a):
+flutter build apk --release --target-platform android-arm64
 ```
+
+С v0.3.1 `build.gradle.kts` держит `splits.abi` включённым для ARM-вариантов:
+arm64-v8a (Oppo A18 и все современные ARM-смартфоны) + armeabi-v7a (старые ARMv7).
+x86_64 выпилен — лаунчер не нужен на эмуляторах в проде, минус ~20 МБ на APK.
 
 Первая сборка на новой машине скачает NDK (~2 ГБ) — это норма.
 **Сборка без NDK на слабой машине:** вместо 2 ГБ NDK можно положить
