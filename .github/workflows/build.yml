@@ -66,9 +66,13 @@ jobs:
           fi
 
       - name: Build split-per-ABI release APKs
-        # org.gradle.java.home закомментирован в gradle.properties —
-        # Gradle подхватывает JDK от actions/setup-java через JAVA_HOME.
-        run: flutter build apk --release --split-per-abi
+        # --split-per-abi: Flutter сам разбивает по ABI. ВАЖНО: не использовать
+        #   splits.abi в build.gradle.kts одновременно — Flutter-обёртка падает
+        #   с "Gradle build failed to produce an .apk file", не находя APK
+        #   по стандартному пути.
+        # --target-platform: только ARM — Oppo A18 (arm64-v8a) + старые ARMv7.
+        #   x86_64 не нужен (sideload-лаунчер не для эмуляторов).
+        run: flutter build apk --release --split-per-abi --target-platform=android-arm64,android-arm
 
       - name: List built APKs
         run: ls -lh build/app/outputs/flutter-apk/

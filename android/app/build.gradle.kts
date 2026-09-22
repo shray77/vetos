@@ -33,19 +33,6 @@ android {
         versionName = flutter.versionName
     }
 
-    // Split-per-ABI: sideload-APK под конкретное устройство — ~25 МБ вместо ~62 МБ.
-    // На Oppo A18 (arm64-v8a) ставится arm64-вариант, на старых ARMv7 — свой.
-    // x86_64 выпиливаем: лаунчер не нужен на эмуляторах в проде, -20 МБ на APK.
-    // Фильтры ABI живут только тут — ndk.abiFilters конфликтует со splits.abi.
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = false
-        }
-    }
-
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
