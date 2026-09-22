@@ -1,0 +1,106 @@
+name: Build APK
+
+# Сборка release-APK под ARM (Oppo A18 / Helio G35 = arm64-v8a) на каждый
+# push в main с тегом v*, по запросу вручную и на PR (без публикации).
+# Артефакты — split-per-ABI: arm64-v8a (~25 МБ) и armeabi-v7a (~20 МБ).
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Отменяем предыдущие запуски того же пуша — экономим минуты CI.
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Download pub deps
+        run: flutter pub get
+
+      - name: Build split-per-ABI release APKs
+        # split-per-ABI: arm64-v8a (Oppo A18 и все современные ARM) + armeabi-v7a.
+        # x86_64 выпилен в build.gradle.kts (splits.abi), так что двух APK хватит.
+        run: flutter build apk --release --split-per-abi
+
+      - name: List built APKs
+        run: ls -lh build/app/outputs/flutter-apk/
+
+      - name: Upload arm64-v8a APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VetOS-arm64-v8a
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload armeabi-v7a APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VetOS-armeabi-v7a
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          if-no-files-found: warn
+          retention-days: 30
+
+  # Релиз на GitHub Releases — только для тегов v*.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download arm64 APK
+        uses: actions/download-artifact@v4
+        with:
+          name: VetOS-arm64-v8a
+          path: artifacts/
+
+      - name: Download armv7 APK
+        uses: actions/download-artifact@v4
+        with:
+          name: VetOS-armeabi-v7a
+          path: artifacts/
+
+      - name: Rename APKs for release
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd artifacts
+          mv app-arm64-v8a-release.apk "VetOS-${TAG}-arm64-v8a.apk"
+          mv app-armeabi-v7a-release.apk "VetOS-${TAG}-armeabi-v7a.apk" || true
+          ls -lh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: VetOS ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/*.apk
