@@ -14,6 +14,7 @@ import '../widgets/project_tile.dart';
 import '../widgets/station_sheet.dart';
 import 'browser_screen.dart';
 import 'drawer_screen.dart';
+import 'projects_screen.dart';
 import 'settings_screen.dart';
 
 /// Домашний экран VetOS: часы, метео-тайл, сетка проектов, вход в дровер.
@@ -50,6 +51,8 @@ class _HomeScreenState extends State<HomeScreen>
     _feedOn['outbreaks'] = await PrefsService.feedEnabled('outbreaks');
     _feedOn['verify'] = await PrefsService.feedEnabled('verify');
     _feedOn['weekly'] = await PrefsService.feedEnabled('weekly');
+    _feedOn['tspulse'] = await PrefsService.feedEnabled('tspulse');
+    _feedOn['digest'] = await PrefsService.feedEnabled('digest');
     if (mounted) setState(() {});
     await Future.wait([_meteo.refresh(), _feeds.refresh()]);
     _scheduleMeteo();
@@ -117,7 +120,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// После настроек — перечитать тумблеры ленты (могли переключить).
   Future<void> _reloadFeedToggles() async {
-    for (final id in const ['outlook', 'outbreaks', 'verify', 'weekly']) {
+    for (final id in const [
+      'outlook', 'outbreaks', 'verify', 'weekly', 'tspulse', 'digest'
+    ]) {
       _feedOn[id] = await PrefsService.feedEnabled(id);
     }
     if (mounted) setState(() {});
@@ -196,6 +201,18 @@ class _HomeScreenState extends State<HomeScreen>
           slice: _feeds.weekly!,
           onTap: () =>
               _openProject(kProjects.firstWhere((p) => p.id == 'meteo')),
+        ),
+      if (_feedOn['tspulse'] == true && _feeds.tspulse != null)
+        TspulseCard(
+          slice: _feeds.tspulse!,
+          onTap: () =>
+              _openProject(kProjects.firstWhere((p) => p.id == 'pilots')),
+        ),
+      if (_feedOn['digest'] == true && _feeds.digest != null)
+        DigestCard(
+          slice: _feeds.digest!,
+          onTap: () => _openProject(
+              kProjects.firstWhere((p) => p.id == 'digest-audio')),
         ),
     ];
     if (children.isEmpty) return null;
@@ -280,6 +297,8 @@ class _HomeScreenState extends State<HomeScreen>
                           strip,
                         ],
                         const SizedBox(height: 14),
+                        // На домашнем — только ядро экосистемы (home: true);
+                        // остальные проекты — в каталоге «Все проекты» (v0.4.0).
                         GridView.count(
                           crossAxisCount: 2,
                           mainAxisSpacing: 12,
@@ -288,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen>
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           children: [
-                            for (final p in kProjects)
+                            for (final p in kProjects.where((p) => p.home))
                               ProjectTile(
                                 project: p,
                                 installed: _installed[p.package] ?? false,
@@ -296,7 +315,40 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                           ],
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 12),
+                        // Каталог всех проектов: поиск + разделы.
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ProjectsScreen(
+                                  onOpen: _openProject,
+                                  installed: _installed,
+                                ),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(
+                                  color: const Color(0xFFA78BFA)
+                                      .withValues(alpha: 0.4)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18)),
+                            ),
+                            icon: const Icon(Icons.dashboard_outlined,
+                                color: Color(0xFFA78BFA)),
+                            label: Text(
+                              'ВСЕ ПРОЕКТЫ · ${kProjects.length}',
+                              style: const TextStyle(
+                                  letterSpacing: 1.5,
+                                  color: Colors.white,
+                                  fontSize: 13),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         // Дровер всех приложений.
                         SizedBox(
                           width: double.infinity,

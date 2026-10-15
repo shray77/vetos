@@ -30,12 +30,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late int _intervalMin;
   bool _builtin = true;
 
-  /// Тумблеры живой ленты: outlook / outbreaks / verify / weekly.
+  /// Тумблеры живой ленты: outlook / outbreaks / verify / weekly / tspulse / digest.
   final Map<String, bool> _feed = {
     'outlook': true,
     'outbreaks': true,
     'verify': true,
     'weekly': false,
+    'tspulse': true,
+    'digest': true,
   };
 
   static const _intervals = [10, 20, 30, 60];
@@ -45,6 +47,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'outbreaks': 'Вспышки · ВетКарта',
     'verify': 'Прогноз vs факт',
     'weekly': 'Недельный дайджест',
+    'tspulse': 'Аномалия · TSPulse',
+    'digest': 'Дайджест · LLM',
   };
 
   static const _feedSubs = {
@@ -52,6 +56,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'outbreaks': 'outbreaks.json · Ростовская обл., с 2019',
     'verify': 'verify.json · ретро-проверка, MAE THI',
     'weekly': 'weekly.json · дайджест по архиву радара',
+    'tspulse': 'tspulse/latest.json · пилот аномалий, вет-пилоты',
+    'digest': 'llm_digest.json · сводка недели + аудио (Piper)',
   };
 
   @override
@@ -245,8 +251,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _section('О VetOS'),
             _aboutTile(
-              'VetOS 0.3.0 · ru.shray77.vetos',
-              'лаунчер-хаб вет-экосистемы: 6 проектов, живой метео-тайл, лента данных, встроенный браузер',
+              'VetOS 0.4.0 · ru.shray77.vetos',
+              'лаунчер-хаб вет-экосистемы: 16 проектов, живой метео-тайл, лента данных, встроенный браузер',
             ),
             _aboutTile(
               'Источник метео',

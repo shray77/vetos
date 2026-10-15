@@ -216,3 +216,145 @@ class WeeklySlice {
             .toList(),
       );
 }
+
+/// tspulse/latest.json (вет-пилоты, v0.4.0) — аномалия недели:
+/// Granite-TSPulse считает скор вспышечной активности против истории.
+///
+/// Схема толерантная: отсутствующее поле = «—», а не падение.
+class TspulseSlice {
+  final DateTime generatedAt;
+  final String verdict; // «повышенный фон» / «норма»…
+  final String note; // человеческое пояснение
+  final double? meanScore;
+  final double? maxScore;
+  final double? percentileMean;
+  final double? percentileMax;
+  final double? threshold; // порог аномалии (0.6)
+  final int? daysOver; // days_over_threshold
+  final String windowFrom; // week.window[0] «2026-10-09»
+  final String windowTo; // week.window[1] «2026-10-15»
+  final Map<String, int> diseases; // week_diseases: болезнь → записей
+
+  TspulseSlice({
+    required this.generatedAt,
+    required this.verdict,
+    required this.note,
+    this.meanScore,
+    this.maxScore,
+    this.percentileMean,
+    this.percentileMax,
+    this.threshold,
+    this.daysOver,
+    this.windowFrom = '',
+    this.windowTo = '',
+    this.diseases = const {},
+  });
+
+  static double? _d(dynamic v) => v is num ? v.toDouble() : null;
+  static int? _i(dynamic v) => v is num ? v.toInt() : null;
+
+  factory TspulseSlice.fromJson(Map<String, dynamic> j) {
+    final week = j['week'] is Map<String, dynamic>
+        ? j['week'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final window = week['window'] is List && (week['window'] as List).length >= 2
+        ? (week['window'] as List).map((e) => e.toString()).toList()
+        : <String>[];
+    final rawDiseases = j['week_diseases'];
+    final diseases = <String, int>{};
+    if (rawDiseases is Map) {
+      rawDiseases.forEach((k, v) {
+        final n = v is num ? v.toInt() : null;
+        if (n != null) diseases[k.toString()] = n;
+      });
+    }
+    return TspulseSlice(
+      generatedAt:
+          DateTime.tryParse((j['generated_at'] ?? j['generatedAt'] ?? '')
+              as String) ??
+              DateTime.now(),
+      verdict: (week['verdict'] ?? '—') as String,
+      note: (week['note'] ?? '') as String,
+      meanScore: _d(week['mean_score']),
+      maxScore: _d(week['max_score']),
+      percentileMean: _d(week['percentile_mean']),
+      percentileMax: _d(week['percentile_max']),
+      threshold: _d(week['threshold']),
+      daysOver: _i(week['days_over_threshold']),
+      windowFrom: window.isNotEmpty ? window[0] : '',
+      windowTo: window.length >= 2 ? window[1] : '',
+      diseases: diseases,
+    );
+  }
+
+  /// «09.10–15.10» — окно недели для карточки.
+  String get windowLabel {
+    String fmt(String iso) {
+      final d = DateTime.tryParse(iso);
+      if (d == null) return '—';
+      return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}';
+    }
+
+    if (windowFrom.isEmpty && windowTo.isEmpty) return '—';
+    return '${fmt(windowFrom)}–${fmt(windowTo)}';
+  }
+
+  /// «Бешенство 18 · Лейкоз КРС 9 · …» — топ-3 болезни недели.
+  String get diseasesTop3 {
+    final sorted = diseases.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted
+        .take(3)
+        .map((e) => '${e.key} ${e.value}')
+        .join(' · ');
+  }
+}
+
+/// data/llm_digest.json (вет-дайджест, v0.4.0) — LLM-сводка недели:
+/// малая модель (Qwen3-1.7B на Actions) пишет дайджест по сигналам
+/// экосистемы; рядом лежит аудио-версия (Piper) на Pages.
+class DigestSlice {
+  final DateTime generatedAt;
+  final String weekKey; // «2026-W41»
+  final String headline; // главный вывод
+  final String summary; // развёрнутая сводка
+  final List<String> bullets; // тезисы по блокам
+  final String practical; // практический смысл
+  final String sourcesOk; // «18/22» — источники ок
+  final int events; // событий в срезе
+  final String disclaimer;
+
+  DigestSlice({
+    required this.generatedAt,
+    required this.weekKey,
+    required this.headline,
+    required this.summary,
+    required this.bullets,
+    required this.practical,
+    required this.sourcesOk,
+    required this.events,
+    required this.disclaimer,
+  });
+
+  factory DigestSlice.fromJson(Map<String, dynamic> j) {
+    final stats = j['stats'] is Map<String, dynamic>
+        ? j['stats'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    return DigestSlice(
+      generatedAt:
+          DateTime.tryParse((j['generated_at'] ?? j['generatedAt'] ?? '')
+              as String) ??
+              DateTime.now(),
+      weekKey: (j['week_key'] ?? '—') as String,
+      headline: (j['headline'] ?? '') as String,
+      summary: (j['summary'] ?? '') as String,
+      bullets: ((j['bullets'] ?? []) as List)
+          .map((e) => e.toString())
+          .toList(),
+      practical: (j['practical'] ?? '') as String,
+      sourcesOk: (stats['sources_ok'] ?? '—') as String,
+      events: stats['events'] is num ? (stats['events'] as num).toInt() : 0,
+      disclaimer: (j['disclaimer'] ?? '') as String,
+    );
+  }
+}

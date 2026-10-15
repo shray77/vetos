@@ -383,3 +383,114 @@ class WeeklyCard extends StatelessWidget {
     );
   }
 }
+
+/// Аномалия недели — пилот TSPulse (tspulse/latest.json, вет-пилоты).
+/// Цвет карточки = сила сигнала: выше порога — красный, перцентиль ≥ 80 —
+/// янтарный, иначе спокойный зелёный.
+class TspulseCard extends StatelessWidget {
+  final TspulseSlice slice;
+  final VoidCallback onTap;
+
+  const TspulseCard({super.key, required this.slice, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final signal = (slice.daysOver ?? 0) > 0
+        ? const Color(0xFFEF4444)
+        : (slice.percentileMax ?? 0) >= 80
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFF2DD4A7);
+    final diseases = slice.diseasesTop3;
+
+    return FeedShell(
+      accent: signal,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Header('АНОМАЛИЯ · TSPULSE', slice.windowLabel, signal),
+          const SizedBox(height: 8),
+          Text(
+            slice.verdict,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'max ${slice.maxScore?.toStringAsFixed(2) ?? '—'} · '
+            '${slice.percentileMax?.toStringAsFixed(1) ?? '—'} перцентиль',
+            style: TextStyle(fontSize: 12.5, color: Colors.grey.shade300),
+          ),
+          if (diseases.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              diseases,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12.5, color: Colors.grey.shade300),
+            ),
+          ],
+          const Spacer(),
+          Text(
+            'порог ${slice.threshold?.toStringAsFixed(1) ?? '—'} · '
+            'выше ${slice.daysOver ?? 0} дн · тап — пилоты',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Дайджест недели от LLM (data/llm_digest.json, вет-дайджест).
+/// Тап открывает сайт дайджеста — там полный текст и аудио-версия Piper.
+class DigestCard extends StatelessWidget {
+  final DigestSlice slice;
+  final VoidCallback onTap;
+
+  const DigestCard({super.key, required this.slice, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFF22D3EE);
+    final headline =
+        slice.headline.isNotEmpty ? slice.headline : slice.summary;
+
+    return FeedShell(
+      accent: accent,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Header('ДАЙДЖЕСТ · LLM', slice.weekKey, accent),
+          const SizedBox(height: 8),
+          Text(
+            headline,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: Colors.grey.shade200,
+              height: 1.35,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'события ${slice.events} · источники ${slice.sourcesOk} · '
+            'тап — дайджест и аудио',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
+    );
+  }
+}

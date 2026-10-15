@@ -25,7 +25,19 @@ import '../models/feeds.dart';
 class FeedService extends ChangeNotifier {
   static const _base =
       'https://raw.githubusercontent.com/shray77/vet-meteo/main';
+
+  /// Аномалия недели — пилот TSPulse (вет-пилоты).
+  static const _tspulseUrl =
+      'https://raw.githubusercontent.com/shray77/vet-pilots/main/tspulse/latest.json';
+
+  /// LLM-дайджест недели (вет-дайджест).
+  static const _digestUrl =
+      'https://raw.githubusercontent.com/shray77/vet-digest-llm/main/data/llm_digest.json';
+
   static const _kCachePrefix = 'vetos.cache.feed.';
+
+  /// Всего фидов — для честного «сколько не ответило».
+  static const _feedCount = 6;
 
   /// Общий клиент на весь сервис — keep-alive, connection-pool.
   static final Client _http = Client();
@@ -34,6 +46,8 @@ class FeedService extends ChangeNotifier {
   OutbreaksSlice? outbreaks;
   VerifySlice? verify;
   WeeklySlice? weekly;
+  TspulseSlice? tspulse;
+  DigestSlice? digest;
 
   bool loading = false;
   DateTime? fetchedAt;
@@ -52,10 +66,14 @@ class FeedService extends ChangeNotifier {
       final b = sp.getString('${_kCachePrefix}outbreaks');
       final v = sp.getString('${_kCachePrefix}verify');
       final w = sp.getString('${_kCachePrefix}weekly');
+      final t = sp.getString('${_kCachePrefix}tspulse');
+      final d = sp.getString('${_kCachePrefix}digest');
       if (o != null) outlook = OutlookSlice.fromJson(jsonDecode(o));
       if (b != null) outbreaks = OutbreaksSlice.fromJson(jsonDecode(b));
       if (v != null) verify = VerifySlice.fromJson(jsonDecode(v));
       if (w != null) weekly = WeeklySlice.fromJson(jsonDecode(w));
+      if (t != null) tspulse = TspulseSlice.fromJson(jsonDecode(t));
+      if (d != null) digest = DigestSlice.fromJson(jsonDecode(d));
       if (outlook != null || outbreaks != null) notifyListeners();
     } catch (_) {
       // кэш побился — не беда
@@ -82,6 +100,8 @@ class FeedService extends ChangeNotifier {
       _tryJson('$_base/docs/data/outbreaks.json'),
       _tryJson('$_base/data/verify.json'),
       _tryJson('$_base/data/weekly.json'),
+      _tryJson(_tspulseUrl),
+      _tryJson(_digestUrl),
     ]);
 
     final missed = <String>[];
@@ -109,9 +129,21 @@ class FeedService extends ChangeNotifier {
     } else {
       missed.add('дайджест');
     }
+    if (results[4] != null) {
+      tspulse = TspulseSlice.fromJson(results[4]!);
+      _saveCached('tspulse', results[4]!);
+    } else {
+      missed.add('аномалия TSPulse');
+    }
+    if (results[5] != null) {
+      digest = DigestSlice.fromJson(results[5]!);
+      _saveCached('digest', results[5]!);
+    } else {
+      missed.add('дайджест LLM');
+    }
 
     failed = missed;
-    if (missed.length < 4) fetchedAt = DateTime.now();
+    if (missed.length < _feedCount) fetchedAt = DateTime.now();
     loading = false;
     notifyListeners();
   }
