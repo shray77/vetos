@@ -14,6 +14,23 @@ class ThiStatus {
   }
 }
 
+/// Статус CCI (Comprehensive Climate Index, Mader 2010 err. 2011) — комфорт в °C.
+/// Пороги OK Mesonet 2016: -10..30 термонейтрально, >=30 жара-осторожно,
+/// >=40 опасная жара, <=-10 холод-осторожно, <=-30 опасный холод.
+class CciStatus {
+  final String label;
+  final Color color;
+  const CciStatus(this.label, this.color);
+
+  static CciStatus of(double cci) {
+    if (cci >= 40) return const CciStatus('жара·экстрим', Color(0xFFEF4444));
+    if (cci >= 30) return const CciStatus('жара·остор.', Color(0xFFF97316));
+    if (cci <= -30) return const CciStatus('холод·экстрим', Color(0xFF2563EB));
+    if (cci <= -10) return const CciStatus('холод·остор.', Color(0xFF60A5FA));
+    return const CciStatus('комфорт', Color(0xFF2DD4A7));
+  }
+}
+
 /// Станция из data/latest.json (срез метео-радара).
 class MeteoStation {
   final String id;
@@ -26,6 +43,7 @@ class MeteoStation {
   final double? thiAdj;
   final double? thiMaxToday;
   final double? thiMax7;
+  final double? cci; // Comprehensive Climate Index, °C (vet-api)
   final int? brd;
 
   MeteoStation({
@@ -39,6 +57,7 @@ class MeteoStation {
     this.thiAdj,
     this.thiMaxToday,
     this.thiMax7,
+    this.cci,
     this.brd,
   });
 
@@ -56,6 +75,7 @@ class MeteoStation {
         thiAdj: _d(j['thiAdj']),
         thiMaxToday: _d(j['thiMaxToday']),
         thiMax7: _d(j['thiMax7']),
+        cci: _d(j['cci']),
         brd: _i(j['brd']),
       );
 
@@ -77,6 +97,7 @@ class MeteoStation {
         'thiAdj': thiAdj,
         'thiMaxToday': thiMaxToday,
         'thiMax7': thiMax7,
+        'cci': cci,
         'brd': brd,
       };
 }
@@ -115,6 +136,7 @@ class ForecastStation {
   final String name;
   final List<double> thi;
   final List<double> adj;
+  final List<double> cci;
   final List<double> t;
   final List<double> wind;
   final List<double> pr; // осадки, мм/ч
@@ -124,6 +146,7 @@ class ForecastStation {
     required this.name,
     required this.thi,
     required this.adj,
+    required this.cci,
     required this.t,
     required this.wind,
     required this.pr,
@@ -138,6 +161,7 @@ class ForecastStation {
         name: (j['name'] ?? '') as String,
         thi: _arr(j['thi']),
         adj: _arr(j['adj']),
+        cci: _arr(j['cci']),
         t: _arr(j['t']),
         wind: _arr(j['wind']),
         pr: _arr(j['pr']),
@@ -148,6 +172,7 @@ class ForecastStation {
         'name': name,
         'thi': thi,
         'adj': adj,
+        'cci': cci,
         't': t,
         'wind': wind,
         'pr': pr,

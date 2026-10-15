@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/meteo.dart';
 
-/// Живой метео-тайл: THI станции по умолчанию + мини-прогноз на 24 ч.
+/// Живой метео-тайл: THI станции по умолчанию + CCI (комфорт, °C) + мини-прогноз на 24 ч.
 class MeteoCard extends StatelessWidget {
   final MeteoStation? station;
   final ForecastStation? forecastStation;
@@ -144,6 +144,10 @@ class MeteoCard extends StatelessWidget {
                 _metric('${s?.rh ?? '—'}%', 'влажн'),
                 _metric('${_fmt(s?.wind, ' ')} м/с', 'ветер ${s?.windDirLabel ?? ''}'),
                 _metric(_fmt(s?.thiAdj), 'THIadj'),
+                _metric(
+                  s?.cci == null ? '—' : '${_fmt(s?.cci)}°',
+                  'CCI${s?.cci != null ? ' · ${CciStatus.of(s!.cci!).label}' : ''}',
+                ),
               ],
             ),
             const SizedBox(height: 12),

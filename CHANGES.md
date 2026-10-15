@@ -1,4 +1,23 @@
-# CHANGES — VetOS v0.3.1
+# CHANGES — VetOS v0.3.2
+
+### CCI в метео-тайле и листе станций
+
+- `lib/models/meteo.dart`: в `MeteoStation` и `ForecastStation` добавлено
+  поле `cci` (Comprehensive Climate Index, Mader 2010 err. 2011, °C) —
+  парсится из среза `vet-meteo`/`vet-api` (ключ `cci`); новый класс
+  `CciStatus` с зонами OK Mesonet 2016: -10..30 комфорт, >=30 жара,
+  >=40 экстрим жары, <=-10 холод, <=-30 экстрим холода.
+- `lib/widgets/meteo_card.dart`: пятая метрика в ряду — `CCI` со
+  текстовой зоной (например «CCI · комфорт»); THI остаётся главным
+  числом тайла и спарклайна.
+- `lib/widgets/station_sheet.dart`: в списке станций к THI добавлен
+  CCI-чип («THI 67.9 · CCI +19°»).
+- Обратная совместимость: старые кэшированные срезы без `cci`
+  показывают «—», ничего не падает.
+
+---
+
+# CHANGES — VetOS v0.3.1 (история)
 
 Целевое устройство для оптимизации: **Oppo A18 (CPH2591)**
 - SoC: MediaTek Helio G35 (8× Cortex-A53 @2.3 ГГц, 12 нм)

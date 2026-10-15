@@ -149,9 +149,12 @@ class _StationSheetState extends State<StationSheet> {
                             ),
                           ),
                           trailing: Text(
-                            s.thi == null
-                                ? '—'
-                                : 'THI ${s.thi!.toStringAsFixed(1)}',
+                            [
+                              s.thi == null ? null : 'THI ${s.thi!.toStringAsFixed(1)}',
+                              s.cci == null
+                                  ? null
+                                  : 'CCI ${s.cci! > 0 ? '+' : ''}${s.cci!.toStringAsFixed(0)}°',
+                            ].where((t) => t != null).join(' · ') ?? '—',
                             style: TextStyle(
                               fontSize: 12.5,
                               color: status?.color ?? Colors.grey.shade500,
