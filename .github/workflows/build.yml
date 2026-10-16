@@ -50,6 +50,15 @@ jobs:
       - name: Download pub deps
         run: flutter pub get
 
+      - name: Decode release keystore
+        # Keystore из секретов. Наличие файла включает release-подпись
+        # в build.gradle.kts; без файла сборка падает на debug-ключ (локально).
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "${{ github.workspace }}/android/app/vetos-release.jks"
+          test -s "${{ github.workspace }}/android/app/vetos-release.jks" && echo "keystore ready: $(wc -c < ${{ github.workspace }}/android/app/vetos-release.jks) bytes"
+
       - name: Read version from pubspec
         id: meta
         # Извлекаем version из pubspec.yaml и определяем тип релиза:
@@ -72,6 +81,12 @@ jobs:
         #   по стандартному пути.
         # --target-platform: только ARM — Oppo A18 (arm64-v8a) + старые ARMv7.
         #   x86_64 не нужен (sideload-лаунчер не для эмуляторов).
+        # KEYSTORE_*: включают release-подпись (см. build.gradle.kts signingConfigs).
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/android/app/vetos-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: flutter build apk --release --split-per-abi --target-platform=android-arm64,android-arm
 
       - name: List built APKs
@@ -87,8 +102,6 @@ jobs:
           cd build/app/outputs/flutter-apk
           mv app-arm64-v8a-release.apk "VetOS-${VERSION}-arm64-v8a.apk"
           mv app-armeabi-v7a-release.apk "VetOS-${VERSION}-armeabi-v7a.apk"
-          # Короткий SHA в имени для rolling-релиза «latest», чтобы отличать сборки.
-          echo "##[set-output name=sha_short;]$(echo ${SHA} | cut -c1-7)"
           ls -lh
 
       - name: Upload arm64-v8a artifact
@@ -147,11 +160,11 @@ jobs:
             echo "body<<EOF" >> "$GITHUB_OUTPUT"
             echo "## VetOS $TAG ($VERSION)" >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
-            echo "Стабильный релиз. Сборка: \`${SHA:0:7}\`." >> "$GITHUB_OUTPUT"
+            echo "Стабильный релиз. Сборка: \\`${SHA:0:7}\\`." >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
             echo "### APK" >> "$GITHUB_OUTPUT"
-            echo "- \`VetOS-${VERSION}-arm64-v8a.apk\` — для Oppo A18 и всех современных ARM-смартфонов (~25 МБ)" >> "$GITHUB_OUTPUT"
-            echo "- \`VetOS-${VERSION}-armeabi-v7a.apk\` — для старых ARMv7-устройств (~20 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \\`VetOS-${VERSION}-arm64-v8a.apk\\` — для Oppo A18 и всех современных ARM-смартфонов (~25 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \\`VetOS-${VERSION}-armeabi-v7a.apk\\` — для старых ARMv7-устройств (~20 МБ)" >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
             echo "Полный список изменений — в [CHANGES.md](CHANGES.md)." >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
@@ -164,11 +177,11 @@ jobs:
             echo "body<<EOF" >> "$GITHUB_OUTPUT"
             echo "## VetOS v$VERSION — latest build" >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
-            echo "Свежая сборка с \`main\` (\`${SHA:0:7}\`)." >> "$GITHUB_OUTPUT"
+            echo "Свежая сборка с \\`main\\` (\\`${SHA:0:7}\\`)." >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
             echo "### APK" >> "$GITHUB_OUTPUT"
-            echo "- \`VetOS-${VERSION}-arm64-v8a.apk\` — для Oppo A18 / Helio G35 / всех современных ARM (~25 МБ)" >> "$GITHUB_OUTPUT"
-            echo "- \`VetOS-${VERSION}-armeabi-v7a.apk\` — для старых ARMv7 (~20 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \\`VetOS-${VERSION}-arm64-v8a.apk\\` — для Oppo A18 / Helio G35 / всех современных ARM (~25 МБ)" >> "$GITHUB_OUTPUT"
+            echo "- \\`VetOS-${VERSION}-armeabi-v7a.apk\\` — для старых ARMv7 (~20 МБ)" >> "$GITHUB_OUTPUT"
             echo "" >> "$GITHUB_OUTPUT"
             echo "> Это автоматический rolling-релиз. Для стабильной версии — см. [Releases](../../releases)." >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"

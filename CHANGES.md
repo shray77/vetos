@@ -1,3 +1,22 @@
+# CHANGES — VetOS v0.4.1
+
+### Release-подпись APK: апдейты встают поверх
+
+- Раньше rolling-релизы были подписаны **debug-ключом** (Flutter-фолбэк
+  при отсутствии signingConfig), поэтому каждый новый APK требовал
+  ручного удаления старой версии: Android не ставит апдейт поверх APK
+  с другой подписью.
+- Новый RSA-4096 release-keystore (срок 30 лет) хранится в GitHub
+  Actions-секретах репы (`KEYSTORE_BASE64` / `KEYSTORE_PASSWORD` /
+  `KEY_ALIAS` / `KEY_PASSWORD`) и никогда не попадает в git
+  (`.gitignore` защищает от случайного коммита).
+- `build.gradle.kts`: `signingConfigs.release` читает env `KEYSTORE_*`;
+  локальные сборки без env прозрачно используют debug-ключ, как раньше.
+- `build.yml`: шаг «Decode release keystore» перед сборкой + env к
+  шагу сборки; чистка deprecated `set-output`.
+- ⚠ Разово: **v0.4.1 ставится с удалением** старой версии (смена
+  подписи debug → release). Все следующие апдейты встанут поверх.
+
 # CHANGES — VetOS v0.4.0
 
 ### Внедрение новых проектов: каталог 16 плиток + 2 новых фида ленты

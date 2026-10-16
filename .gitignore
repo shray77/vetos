@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Release signing (никогда не в репе)
+android/app/*.jks
+android/app/*.keystore
+vetos-release.jks

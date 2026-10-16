@@ -33,11 +33,27 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // Подпись из env (задаётся в CI: secrets KEYSTORE_*). Локальные сборки
+            // без env прозрачно падают обратно на debug-ключ — flutter run --release работает.
+            val ksPath = System.getenv("KEYSTORE_FILE")
+            if (ksPath != null && file(ksPath).exists()) {
+                storeFile = file(ksPath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Release-подпись когда keystore доступен (CI), иначе debug для локальной разработки.
+            val ksPath = System.getenv("KEYSTORE_FILE")
+            val hasReleaseKey = ksPath != null && file(ksPath).exists()
+            signingConfig = if (hasReleaseKey) signingConfigs.getByName("release")
+                            else signingConfigs.getByName("debug")
             // R8-минификация выключена: для sideload-APK выигрыш мал,
             // а на слабых сборочных машинах R8 выедает память (3.9 ГБ RAM).
             isMinifyEnabled = false
