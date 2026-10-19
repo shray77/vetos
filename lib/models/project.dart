@@ -112,11 +112,11 @@ const kProjects = <Project>[
     icon: '🎓',
     color: Color(0xFF38BDF8),
     kind: ProjectKind.web,
-    // VetLearn хостится на space-z.ai — открывается как другие
-    // веб-плитки: встроенный браузер по умолчанию (без Chrome-полосы).
-    // Старый URL https://gitlab.com/shray77/vetlearn-web оставлен комментарием
-    // на случай отката (если потребуются GitLab-логины/куки).
-    url: 'https://t1h1h8e10p40-d.space-z.ai/',
+    // Стабильное зеркало на GitHub Pages (офлайн-версия с резервным
+    // контентом) — прежний URL space-z.ai был эфемерным превью-инстансом
+    // и мог исчезнуть; GitLab-оригинал требует логинов, для плитки
+    // не нужен. Полная версия — по ссылке «Код» из каталога.
+    url: 'https://shray77.github.io/vetlearn-web/',
     browser: TileBrowser.auto,
     category: ProjectCategory.tools,
     home: true,

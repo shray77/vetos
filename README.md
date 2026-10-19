@@ -4,11 +4,11 @@ Android-лаунчер: домашний экран с живым метео-т�
 проектов ядра и каталогом всей вет-экосистемы shray77 (16 проектов с
 поиском и разделами). Нажимаешь Home — попадаешь в свою экосистему.
 
-**applicationId:** `ru.shray77.vetos` · v0.4.0 · sideload-APK (debug-подпись)
+**applicationId:** `ru.shray77.vetos` · v0.4.1 · sideload-APK (release-подпись, апдейты встают поверх)
 
 ## Скачать
 
-- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.4.0-arm64-v8a.apk` (~25 МБ, split-per-ABI)
+- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.4.1-arm64-v8a.apk` (~25 МБ, split-per-ABI)
 - Исходники — этот репозиторий; архивом — там же, в аттачах релиза.
 
 ## Что внутри
@@ -25,7 +25,8 @@ Android-лаунчер: домашний экран с живым метео-т�
   Новочеркасск… — шит с поиском); долгий тап — полный радар.
 - **Встроенный браузер веб-плиток** — без тулбара Chrome: домен, тонкая
   полоса прогресса, «в Chrome», перезагрузка; «назад» ходит по истории.
-  VetLearn всегда в Chrome (GitLab-логины). Настройка «Браузер веб-плиток»
+  VetLearn открывается стабильным зеркалом на GitHub Pages (офлайн-версия
+  с резервным контентом). Настройка «Браузер веб-плиток»
   в настройках: встроенный / Custom Tabs.
 - **Плитки проектов** — веб-проекты открываются встроенным браузером или
   Chrome Custom Tabs; APK-проекты запускаются по package name; если APK
@@ -58,7 +59,7 @@ Android-лаунчер: домашний экран с живым метео-т�
 | meteo | Метео-Радар | веб | https://shray77.github.io/vet-meteo/ |
 | heatmap | ВетКарта | веб | https://shray77.github.io/vet-heatmap/ |
 | insilico | VetInSilico | веб | https://shray77.github.io/vet-insilico/ |
-| learn | VetLearn AI | веб | https://t1h1h8e10p40-d.space-z.ai/ |
+| learn | VetLearn AI | веб | https://shray77.github.io/vetlearn-web/ (зеркало; полная версия — GitLab) |
 | voice | VetVoice | APK | `com.vetvoice.vetvoice` → фолбэк github.com/shray77/vetvoice |
 | eco | VetEco (vetvoice-rag) | APK | `com.veteco.app` → фолбэк github.com/shray77/vetvoice-rag |
 

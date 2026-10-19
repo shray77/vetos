@@ -26,9 +26,10 @@ class MeteoService extends ChangeNotifier {
   static const _kCacheLatest = 'vetos.cache.meteo.latest';
   static const _kCacheForecast = 'vetos.cache.meteo.forecast';
 
-  /// Общий клиент на весь сервис — keep-alive, connection-pool.
-  /// Закрывается только вместе с сервисом (dispose).
-  static final Client _http = Client();
+  /// Клиент сервиса — keep-alive, connection-pool. Экземплярный (НЕ static):
+  /// static-клиент, закрываемый в dispose, оставлял бы мёртвый сокет всем
+  /// последующим экземплярам сервиса (мина при пересоздании экрана).
+  final Client _http = Client();
 
   MeteoSlice? latest;
   Forecast? forecast;

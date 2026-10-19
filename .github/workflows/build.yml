@@ -50,6 +50,13 @@ jobs:
       - name: Download pub deps
         run: flutter pub get
 
+      - name: Analyze
+        # Строгий анализ: любые info/warning валят шаг (как flutter analyze по умолчанию)
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
       - name: Decode release keystore
         # Keystore из секретов. Наличие файла включает release-подпись
         # в build.gradle.kts; без файла сборка падает на debug-ключ (локально).

@@ -39,8 +39,10 @@ class FeedService extends ChangeNotifier {
   /// Всего фидов — для честного «сколько не ответило».
   static const _feedCount = 6;
 
-  /// Общий клиент на весь сервис — keep-alive, connection-pool.
-  static final Client _http = Client();
+  /// Клиент сервиса — keep-alive, connection-pool. Экземплярный (НЕ static):
+  /// static-клиент, закрываемый в dispose, оставлял бы мёртвый сокет всем
+  /// последующим экземплярам сервиса (мина при пересоздании экрана).
+  final Client _http = Client();
 
   OutlookSlice? outlook;
   OutbreaksSlice? outbreaks;

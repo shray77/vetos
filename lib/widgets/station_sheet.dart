@@ -154,7 +154,7 @@ class _StationSheetState extends State<StationSheet> {
                               s.cci == null
                                   ? null
                                   : 'CCI ${s.cci! > 0 ? '+' : ''}${s.cci!.toStringAsFixed(0)}°',
-                            ].where((t) => t != null).join(' · ') ?? '—',
+                            ].where((t) => t != null).join(' · '),
                             style: TextStyle(
                               fontSize: 12.5,
                               color: status?.color ?? Colors.grey.shade500,
