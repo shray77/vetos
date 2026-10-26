@@ -26,7 +26,7 @@ DS), часы — serif-дисплей Prata (дисплейная кирилл�
 
 ## Скачать
 
-- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.6.0-arm64-v8a.apk` (~25 МБ, split-per-ABI)
+- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-0.6.0-arm64-v8a.apk` (~25 МБ, split-per-ABI)
 - Исходники — этот репозиторий; архивом — там же, в аттачах релиза.
 
 ## Что внутри
