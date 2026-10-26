@@ -28,6 +28,15 @@ class _DrawerScreenState extends State<DrawerScreen> {
     if (mounted) setState(() => _apps = apps);
   }
 
+  /// Запуск с честным тостом DS при фейле: раньше тишина, теперь прибор
+  /// говорит, что не получилось.
+  Future<void> _launch(String package) async {
+    final ok = await LaunchService.launchPackage(package);
+    if (!ok && mounted) {
+      Ds.snack(context, 'не удалось открыть приложение ($package)');
+    }
+  }
+
   List<AppEntry> get _filtered {
     final apps = _apps;
     if (apps == null) return [];
@@ -43,6 +52,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   @override
   Widget build(BuildContext context) {
     final apps = _filtered;
+    final ts = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Ds.bg,
       body: SafeArea(
@@ -59,12 +69,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   Expanded(
                     child: Text(
                       'ПРИЛОЖЕНИЯ · ${apps.length}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        letterSpacing: 1.5,
-                        color: Ds.text,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style:
+                          ts.labelLarge!.copyWith(letterSpacing: 1.4),
                     ),
                   ),
                   TextButton(
@@ -72,7 +78,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                         setState(() => _showSystem = !_showSystem),
                     child: Text(
                       _showSystem ? 'без системных' : 'с системными',
-                      style: const TextStyle(fontSize: 12),
+                      style: ts.labelMedium,
                     ),
                   ),
                 ],
@@ -82,18 +88,10 @@ class _DrawerScreenState extends State<DrawerScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: Ds.text),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'поиск…',
-                  hintStyle: const TextStyle(color: Ds.faint),
-                  prefixIcon: const Icon(Icons.search, color: Ds.faint),
-                  filled: true,
-                  fillColor: Ds.surface,
+                  prefixIcon: Icon(Icons.search, color: Ds.faint),
                   contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Ds.radius),
-                    borderSide: BorderSide.none,
-                  ),
                 ),
               ),
             ),
@@ -128,27 +126,23 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                     a.name.isEmpty
                                         ? '?'
                                         : a.name.substring(0, 1).toUpperCase(),
-                                    style: const TextStyle(color: Ds.accent),
+                                    style: ts.labelLarge!
+                                        .copyWith(color: Ds.accent),
                                   ),
                                 ),
                           title: Text(
                             a.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: Ds.text,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500),
+                            style: ts.titleMedium,
                           ),
                           subtitle: Text(
                             a.packageName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 11, color: Ds.faint),
+                            style: ts.bodySmall,
                           ),
-                          onTap: () =>
-                              LaunchService.launchPackage(a.packageName),
+                          onTap: () => _launch(a.packageName),
                         );
                       },
                     ),

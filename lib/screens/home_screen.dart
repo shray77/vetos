@@ -130,11 +130,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   /// Открывает проект: APK — по пакету (фолбэк на веб), веб — браузером плиток.
+  /// Фейл запуска APK больше не тишина: тост DS говорит, что идёт фолбэк.
   Future<void> _openProject(Project p) async {
     if (p.kind == ProjectKind.app && p.package != null) {
-      if (await LaunchService.isInstalled(p.package!) &&
-          await LaunchService.launchPackage(p.package!)) {
+      final installed = await LaunchService.isInstalled(p.package!);
+      if (installed && await LaunchService.launchPackage(p.package!)) {
         return;
+      }
+      if (installed && mounted) {
+        Ds.snack(context, '«${p.title}» не открылся — пробуем веб-версию');
       }
     }
     await _openWeb(p.url, p.title, mode: p.browser);
@@ -343,10 +347,10 @@ class _HomeScreenState extends State<HomeScreen>
                                 color: Ds.accent),
                             label: Text(
                               'ВСЕ ПРОЕКТЫ · ${kProjects.length}',
-                              style: const TextStyle(
-                                  letterSpacing: 1.5,
-                                  color: Ds.text,
-                                  fontSize: 13),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge!
+                                  .copyWith(letterSpacing: 1.4),
                             ),
                           ),
                         ),
@@ -371,12 +375,12 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                             icon: const Icon(
                                 Icons.apps, color: Ds.muted),
-                            label: const Text(
+                            label: Text(
                               'ВСЕ ПРИЛОЖЕНИЯ',
-                              style: TextStyle(
-                                  letterSpacing: 1.5,
-                                  color: Ds.text,
-                                  fontSize: 13),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge!
+                                  .copyWith(letterSpacing: 1.4),
                             ),
                           ),
                         ),

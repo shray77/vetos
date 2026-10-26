@@ -51,6 +51,7 @@ class _StationSheetState extends State<StationSheet> {
   @override
   Widget build(BuildContext context) {
     final list = _filtered;
+    final ts = Theme.of(context).textTheme;
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -70,42 +71,18 @@ class _StationSheetState extends State<StationSheet> {
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(18, 12, 18, 4),
-              child: Row(
-                children: [
-                  Text(
-                    'СТАНЦИЯ МЕТЕО-ТАЛА',
-                    style: TextStyle(
-                      fontSize: 12,
-                      letterSpacing: 1.5,
-                      color: Ds.text,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Spacer(),
-                  Text(
-                    'районы РО · 49',
-                    style: TextStyle(fontSize: 11, color: Ds.faint),
-                  ),
-                ],
-              ),
+              child: _SheetHeader(),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 4),
               child: TextField(
                 autofocus: false,
                 onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: Ds.text),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'поиск: таганрог, новочеркасск…',
-                  hintStyle: const TextStyle(color: Ds.faint),
-                  prefixIcon: const Icon(Icons.search, color: Ds.faint),
-                  filled: true,
+                  prefixIcon: Icon(Icons.search, color: Ds.faint),
                   fillColor: Ds.bg,
                   contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Ds.radius),
-                    borderSide: BorderSide.none,
-                  ),
                 ),
               ),
             ),
@@ -113,8 +90,8 @@ class _StationSheetState extends State<StationSheet> {
               child: list.isEmpty
                   ? Center(
                       child: Text('ничего не нашлось',
-                          style: const TextStyle(
-                              color: Ds.faint, fontSize: 13)),
+                          style: ts.bodyMedium!
+                              .copyWith(color: Ds.faint)),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 4, 8, 18),
@@ -137,12 +114,9 @@ class _StationSheetState extends State<StationSheet> {
                           ),
                           title: Text(
                             s.name,
-                            style: TextStyle(
-                              color: isCurrent ? Ds.accent : Ds.text,
-                              fontSize: 14.5,
-                              fontWeight: isCurrent
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                            style: ts.titleMedium!.copyWith(
+                              color: isCurrent ? Ds.accent : null,
+                              fontWeight: isCurrent ? FontWeight.w700 : null,
                             ),
                           ),
                           trailing: Text(
@@ -152,11 +126,8 @@ class _StationSheetState extends State<StationSheet> {
                                   ? null
                                   : 'CCI ${s.cci! > 0 ? '+' : ''}${s.cci!.toStringAsFixed(0)}°',
                             ].where((t) => t != null).join(' · '),
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: status?.color ?? Ds.faint,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ts.titleSmall!
+                                .copyWith(color: status?.color ?? Ds.faint),
                           ),
                           onTap: () => Navigator.of(context).pop(s),
                         );
@@ -166,6 +137,26 @@ class _StationSheetState extends State<StationSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Шапка шита: капс-оверлайн + счётчик.
+class _SheetHeader extends StatelessWidget {
+  const _SheetHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final ts = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Text(
+          'СТАНЦИЯ МЕТЕО-ТАЛА',
+          style: ts.labelMedium!.copyWith(color: Ds.text),
+        ),
+        const Spacer(),
+        Text('районы РО · 49', style: ts.bodySmall),
+      ],
     );
   }
 }

@@ -40,6 +40,7 @@ class MeteoCard extends StatelessWidget {
     final s = station;
     final thi = s?.thi;
     final status = thi == null ? null : ThiStatus.of(thi);
+    final ts = Theme.of(context).textTheme;
 
     return GestureDetector(
       onTap: onTap,
@@ -76,11 +77,7 @@ class MeteoCard extends StatelessWidget {
                     children: [
                       Text(
                         'ТЕПЛОВОЙ СТРЕСС · THI',
-                        style: TextStyle(
-                          fontSize: 11,
-                          letterSpacing: 1.2,
-                          color: Ds.muted,
-                        ),
+                        style: ts.labelSmall,
                       ),
                       const SizedBox(height: 2),
                       Row(
@@ -89,11 +86,9 @@ class MeteoCard extends StatelessWidget {
                         children: [
                           Text(
                             thi == null ? (loading ? '…' : '—') : _fmt(thi),
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w700,
+                            // Приборная цифра: Prata-дисплей DS (displayMedium).
+                            style: ts.displayMedium!.copyWith(
                               color: status?.color ?? Ds.faint,
-                              height: 1.0,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -107,11 +102,8 @@ class MeteoCard extends StatelessWidget {
                               ),
                               child: Text(
                                 status.label.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: status.color,
-                                ),
+                                style: ts.labelMedium!
+                                    .copyWith(color: status.color),
                               ),
                             ),
                         ],
@@ -139,13 +131,16 @@ class MeteoCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                _metric('${_fmt(s?.t)}°', 'темп'),
-                _metric('${s?.rh ?? '—'}%', 'влажн'),
-                _metric('${_fmt(s?.wind, ' ')} м/с', 'ветер ${s?.windDirLabel ?? ''}'),
-                _metric(_fmt(s?.thiAdj), 'THIadj'),
+                _metric('${_fmt(s?.t)}°', 'темп', ts.titleMedium, ts.bodySmall),
+                _metric('${s?.rh ?? '—'}%', 'влажн', ts.titleMedium, ts.bodySmall),
+                _metric('${_fmt(s?.wind, ' ')} м/с', 'ветер ${s?.windDirLabel ?? ''}',
+                    ts.titleMedium, ts.bodySmall),
+                _metric(_fmt(s?.thiAdj), 'THIadj', ts.titleMedium, ts.bodySmall),
                 _metric(
                   s?.cci == null ? '—' : '${_fmt(s?.cci)}°',
                   'CCI${s?.cci != null ? ' · ${CciStatus.of(s!.cci!).label}' : ''}',
+                  ts.titleMedium,
+                  ts.bodySmall,
                 ),
               ],
             ),
@@ -158,7 +153,7 @@ class MeteoCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       error!,
-                      style: TextStyle(fontSize: 12, color: Ds.red),
+                      style: ts.bodySmall!.copyWith(color: Ds.red),
                     ),
                   ),
                   TextButton(onPressed: onRetry, child: const Text('повтор')),
@@ -175,7 +170,7 @@ class MeteoCard extends StatelessWidget {
                   ? 'метео-радар · загрузка…'
                   : '${s.name} · срез $fetchedAgoMin мин назад · тап — станция'
                     '${forecastStation != null ? ' · прогноз от $h0 МСК' : ''}',
-              style: const TextStyle(fontSize: 12, color: Ds.faint),
+              style: ts.bodySmall,
             ),
           ],
         ),
@@ -183,16 +178,14 @@ class MeteoCard extends StatelessWidget {
     );
   }
 
-  Widget _metric(String value, String label) {
+  Widget _metric(String value, String label, TextStyle? valueStyle,
+      TextStyle? labelStyle) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600, color: Ds.text)),
-          Text(label,
-              style: const TextStyle(fontSize: 11, color: Ds.faint)),
+          Text(value, style: valueStyle),
+          Text(label, style: labelStyle),
         ],
       ),
     );
@@ -213,7 +206,7 @@ class _Sparkline extends StatelessWidget {
         height: 44,
         child: Center(
           child: Text('прогноз: —',
-              style: const TextStyle(fontSize: 12, color: Ds.faint)),
+              style: Theme.of(context).textTheme.bodySmall),
         ),
       );
     }

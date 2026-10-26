@@ -54,6 +54,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final list = _filtered;
+    final ts = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Ds.bg,
@@ -70,21 +71,15 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: const Icon(Icons.arrow_back, color: Ds.accent),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'ВСЕ ПРОЕКТЫ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        letterSpacing: 1.5,
-                        color: Ds.text,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: ts.titleLarge,
                     ),
                   ),
                   Text(
                     '${list.length} из ${kProjects.length}',
-                    style: const TextStyle(
-                        fontSize: 12, color: Ds.faint),
+                    style: ts.bodySmall,
                   ),
                 ],
               ),
@@ -94,19 +89,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: Ds.text, fontSize: 15),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'поиск: название, раздел…',
-                  hintStyle: const TextStyle(color: Ds.faint),
-                  prefixIcon: const Icon(Icons.search,
-                      color: Ds.faint, size: 22),
-                  filled: true,
-                  fillColor: Ds.surface,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Ds.radius),
-                    borderSide: BorderSide.none,
-                  ),
+                  prefixIcon:
+                      Icon(Icons.search, color: Ds.faint, size: 22),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
@@ -129,8 +117,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   ? Center(
                       child: Text(
                         'ничего не нашлось по «$_query»',
-                        style: const TextStyle(
-                            color: Ds.faint, fontSize: 14),
+                        style: ts.bodyMedium,
                       ),
                     )
                   : ListView.separated(
@@ -154,10 +141,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       selected: selected,
       selectedColor: Ds.accent,
       backgroundColor: Ds.surface,
-      labelStyle: TextStyle(
+      labelStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
         color: selected ? Ds.accentInk : Ds.text,
-        fontWeight: FontWeight.w600,
-        fontSize: 13,
       ),
       onSelected: (_) => setState(() => _cat = cat),
     );
@@ -166,6 +151,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   Widget _tile(Project p) {
     final isApp = p.kind == ProjectKind.app;
     final installed = widget.installed[p.package] ?? false;
+    final ts = Theme.of(context).textTheme;
     return InkWell(
       onTap: () => widget.onOpen(p),
       borderRadius: BorderRadius.circular(Ds.radius),
@@ -201,11 +187,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                           p.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Ds.text,
-                          ),
+                          style: ts.titleMedium,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -218,10 +200,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         ),
                         child: Text(
                           p.category.label,
-                          style: const TextStyle(
-                            fontSize: 10.5,
-                            color: Ds.muted,
-                          ),
+                          style: ts.labelSmall!
+                              .copyWith(color: Ds.muted, fontSize: 10.5),
                         ),
                       ),
                       if (p.home) ...[
@@ -233,12 +213,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             color: Ds.accent.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text(
+                          child: Text(
                             'на экране',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              color: Ds.accent,
-                            ),
+                            style: ts.labelSmall!
+                                .copyWith(color: Ds.accent, fontSize: 10.5),
                           ),
                         ),
                       ],
@@ -251,8 +229,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         : p.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 12, color: Ds.faint),
+                    style: ts.bodySmall,
                   ),
                 ],
               ),

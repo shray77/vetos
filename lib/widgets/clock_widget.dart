@@ -66,33 +66,22 @@ class _ClockWidgetState extends State<ClockWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final ts = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '${_two(_now.hour)}:${_two(_now.minute)}',
-          // Prata — дисплейный serif DS (фолбэк кириллицы периодики):
-          // цифры «мастхеда» домашнего экрана.
-          style: widget.timeStyle ??
-              const TextStyle(
-                fontFamily: 'Prata',
-                fontSize: 56,
-                fontWeight: FontWeight.w400,
-                color: Ds.text,
-                height: 1.05,
-                letterSpacing: 1,
-              ),
+          // Prata-дисплей DS (displayLarge): цифры «мастхеда» домашнего
+          // экрана — роль темы, а не локальный литерал.
+          style: widget.timeStyle ?? ts.displayLarge,
         ),
         const SizedBox(height: 4),
         Text(
           _dateLabel().toUpperCase(),
-          // Оверлайн DS: моно-регистр с трекингом, акцентный цвет.
+          // Оверлайн DS: капс с трекингом, акцентный цвет.
           style: widget.dateStyle ??
-              const TextStyle(
-                fontSize: 12,
-                letterSpacing: 1.5,
-                color: Ds.accent,
-              ),
+              ts.labelMedium!.copyWith(color: Ds.accent),
         ),
       ],
     );

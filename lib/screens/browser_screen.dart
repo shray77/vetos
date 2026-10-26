@@ -131,21 +131,13 @@ class _BrowserScreenState extends State<BrowserScreen> {
                             host,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Ds.text,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.3,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
                             widget.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Ds.faint,
-                              fontSize: 10.5,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -190,7 +182,10 @@ class _BrowserScreenState extends State<BrowserScreen> {
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   child: Text(
                     _mainFrameError!,
-                    style: const TextStyle(color: Ds.red, fontSize: 11),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(color: Ds.red),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

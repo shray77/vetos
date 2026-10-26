@@ -19,6 +19,7 @@ class ProjectTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isApp = project.kind == ProjectKind.app;
+    final ts = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(Ds.radius),
@@ -44,21 +45,14 @@ class ProjectTile extends StatelessWidget {
             const Spacer(),
             Text(
               project.title,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Ds.text,
-              ),
+              style: ts.headlineSmall,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 3),
             Text(
               isApp && !installed ? 'не установлен · веб' : project.subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Ds.faint,
-              ),
+              style: ts.bodySmall,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
