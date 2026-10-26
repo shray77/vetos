@@ -13,7 +13,6 @@
 //    «офлайн-устойчивость»), таймауты прогоняются фейк-пампом ~55 с;
 //  - BrowserScreen — WebView, в widget-тестах не рендерится → вне базы;
 //  - LaunchService.isInstalled — MethodChannel, но try/catch → false.
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -152,7 +151,7 @@ void main() {
           meteo: MeteoService(),
           stationId: '37',
           intervalMin: 30,
-          onChanged: (_, __) {},
+          onChanged: (_, _) {},
         ),
         '04_settings'));
   });

@@ -36,6 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
   url_launcher: ^6.3.2
+  # package:clock — ClockWidget рендерит время через clock.now (v2.4-хвост,
+  # Task 176): golden-тесты фиксируют время withClock(Clock.fixed(...));
+  # раньше был transitive — строгий analyze ветос-ри валит прямой импорт
+  # без декларации (depend_on_referenced_packages)
+  clock: ^1.1.0
   shared_preferences: ^2.5.5
   intl: ^0.20.3
   webview_flutter: ^4.14.1
