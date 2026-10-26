@@ -4,6 +4,7 @@ import '../models/meteo.dart';
 import '../services/launch_service.dart';
 import '../services/meteo_service.dart';
 import '../services/prefs_service.dart';
+import '../theme/ds.dart';
 
 
 /// Настройки: станция метео-тайла, живая лента, интервал, браузер плиток.
@@ -86,7 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final forecast = widget.meteo.forecast;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F14),
+      backgroundColor: Ds.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 32),
@@ -95,15 +96,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(Icons.arrow_back,
-                      color: Color(0xFF2DD4A7)),
+                  icon: const Icon(Icons.arrow_back, color: Ds.accent),
                 ),
                 const Text(
                   'НАСТРОЙКИ',
                   style: TextStyle(
                     fontSize: 16,
                     letterSpacing: 1.5,
-                    color: Colors.white,
+                    color: Ds.text,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -115,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   'список станций подгрузится, когда метео-радар ответит',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  style: const TextStyle(color: Ds.faint, fontSize: 13),
                 ),
               )
             else
@@ -123,8 +123,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF111827),
-                  borderRadius: BorderRadius.circular(16),
+                  color: Ds.surface,
+                  borderRadius: BorderRadius.circular(Ds.radius),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -132,8 +132,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? _stationId
                         : stations.first.id,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF111827),
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    dropdownColor: Ds.surface2,
+                    style: const TextStyle(color: Ds.text, fontSize: 15),
                     items: [
                       for (final s in stations)
                         DropdownMenuItem(
@@ -157,12 +157,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ChoiceChip(
                   label: const Text('встроенный'),
                   selected: _builtin,
-                  selectedColor: const Color(0xFF2DD4A7),
-                  backgroundColor: const Color(0xFF111827),
+                  selectedColor: Ds.accent,
+                  backgroundColor: Ds.surface,
                   labelStyle: TextStyle(
-                    color: _builtin
-                        ? const Color(0xFF0B0F14)
-                        : Colors.white,
+                    color: _builtin ? Ds.accentInk : Ds.text,
                     fontWeight: FontWeight.w600,
                   ),
                   onSelected: (_) => _setBrowser(true),
@@ -170,12 +168,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ChoiceChip(
                   label: const Text('Chrome (полоса)'),
                   selected: !_builtin,
-                  selectedColor: const Color(0xFF2DD4A7),
-                  backgroundColor: const Color(0xFF111827),
+                  selectedColor: Ds.accent,
+                  backgroundColor: Ds.surface,
                   labelStyle: TextStyle(
-                    color: !_builtin
-                        ? const Color(0xFF0B0F14)
-                        : Colors.white,
+                    color: !_builtin ? Ds.accentInk : Ds.text,
                     fontWeight: FontWeight.w600,
                   ),
                   onSelected: (_) => _setBrowser(false),
@@ -189,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? 'веб-плитки открываются внутри VetOS — без тулбара Chrome; '
                         'внутри есть кнопка «в Chrome» (VetLearn всегда в Chrome — там логины)'
                     : 'веб-плитки открываются Chrome Custom Tabs — с полосой и куками Chrome',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                style: const TextStyle(color: Ds.faint, fontSize: 12),
               ),
             ),
             _section('Живая лента экосистемы'),
@@ -200,23 +196,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() => _feed[id] = v);
                   PrefsService.setFeedEnabled(id, v);
                 },
-                activeThumbColor: const Color(0xFF2DD4A7),
+                activeThumbColor: Ds.accent,
                 dense: true,
                 title: Text(_feedTitles[id] ?? id,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: Ds.text,
                         fontSize: 14,
                         fontWeight: FontWeight.w600)),
                 subtitle: Text(_feedSubs[id] ?? '',
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12)),
+                    style: const TextStyle(
+                        color: Ds.faint, fontSize: 12)),
               ),
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
                 'карточки тянутся из git-репозиториев проектов '
                 '(raw.githubusercontent), как метео-тайл — без серверов и кабинетов',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                style: const TextStyle(color: Ds.faint, fontSize: 12),
               ),
             ),
             _section('Интервал обновления метео'),
@@ -227,12 +223,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ChoiceChip(
                     label: Text('$m мин'),
                     selected: _intervalMin == m,
-                    selectedColor: const Color(0xFF2DD4A7),
-                    backgroundColor: const Color(0xFF111827),
+                    selectedColor: Ds.accent,
+                    backgroundColor: Ds.surface,
                     labelStyle: TextStyle(
-                      color: _intervalMin == m
-                          ? const Color(0xFF0B0F14)
-                          : Colors.white,
+                      color: _intervalMin == m ? Ds.accentInk : Ds.text,
                       fontWeight: FontWeight.w600,
                     ),
                     onSelected: (_) {
@@ -247,11 +241,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               forecast == null
                   ? 'прогноз ещё не загружен'
                   : 'последний срез: ${forecast.h0} МСК · горизонт ${forecast.hours} ч · ${forecast.stations.length} станций',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+              style: const TextStyle(color: Ds.muted, fontSize: 13),
             ),
             _section('О VetOS'),
             _aboutTile(
-              'VetOS 0.4.0 · ru.shray77.vetos',
+              'VetOS 0.5.0 · ru.shray77.vetos',
               'лаунчер-хаб вет-экосистемы: 16 проектов, живой метео-тайл, лента данных, встроенный браузер',
             ),
             _aboutTile(
@@ -285,10 +279,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.fromLTRB(4, 22, 4, 10),
         child: Text(
           title.toUpperCase(),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 11,
             letterSpacing: 1.5,
-            color: Colors.teal.shade200,
+            color: Ds.accent,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -298,15 +292,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF111827),
-          borderRadius: BorderRadius.circular(16),
+          color: Ds.surface,
+          borderRadius: BorderRadius.circular(Ds.radius),
         ),
         child: ListTile(
           title: Text(title,
               style: const TextStyle(
-                  color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                  color: Ds.text, fontSize: 14, fontWeight: FontWeight.w600)),
           subtitle: Text(sub,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+              style: const TextStyle(color: Ds.faint, fontSize: 12)),
           onTap: onTap,
         ),
       );

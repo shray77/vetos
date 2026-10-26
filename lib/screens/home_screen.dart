@@ -16,6 +16,7 @@ import 'browser_screen.dart';
 import 'drawer_screen.dart';
 import 'projects_screen.dart';
 import 'settings_screen.dart';
+import '../theme/ds.dart';
 
 /// Домашний экран VetOS: часы, метео-тайл, сетка проектов, вход в дровер.
 class HomeScreen extends StatefulWidget {
@@ -100,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _openSettings() async {
-    await Navigator.of(context).push(MaterialPageRoute(
+    await Navigator.of(context).push(DsRoute(
       builder: (_) => SettingsScreen(
         meteo: _meteo,
         stationId: _stationId,
@@ -147,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen>
         (mode == TileBrowser.auto && await PrefsService.builtinBrowser());
     if (!mounted) return;
     if (useBuiltin) {
-      await Navigator.of(context).push(MaterialPageRoute(
+      await Navigator.of(context).push(DsRoute(
         builder: (_) => BrowserScreen(url: url, title: title),
       ));
       return;
@@ -247,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF0B0F14), Color(0xFF0B0F14), Color(0xFF101820)],
+              colors: [Ds.bg, Ds.bg, Ds.surface],
             ),
           ),
           child: SafeArea(
@@ -265,8 +266,8 @@ class _HomeScreenState extends State<HomeScreen>
                       const Expanded(child: ClockWidget()),
                       IconButton(
                         onPressed: _openSettings,
-                        icon: Icon(Icons.tune,
-                            color: Colors.grey.shade400, size: 26),
+                        icon: const Icon(Icons.tune,
+                            color: Ds.muted, size: 26),
                       ),
                     ],
                   ),
@@ -317,11 +318,12 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         const SizedBox(height: 12),
                         // Каталог всех проектов: поиск + разделы.
+                        // DS-иерархия: экосистема — акцент, система — нейтрально.
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
+                              DsRoute(
                                 builder: (_) => ProjectsScreen(
                                   onOpen: _openProject,
                                   installed: _installed,
@@ -332,18 +334,18 @@ class _HomeScreenState extends State<HomeScreen>
                               padding:
                                   const EdgeInsets.symmetric(vertical: 14),
                               side: BorderSide(
-                                  color: const Color(0xFFA78BFA)
-                                      .withValues(alpha: 0.4)),
+                                  color: Ds.accent.withValues(alpha: 0.4)),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18)),
+                                  borderRadius:
+                                      BorderRadius.circular(Ds.radius)),
                             ),
                             icon: const Icon(Icons.dashboard_outlined,
-                                color: Color(0xFFA78BFA)),
+                                color: Ds.accent),
                             label: Text(
                               'ВСЕ ПРОЕКТЫ · ${kProjects.length}',
                               style: const TextStyle(
                                   letterSpacing: 1.5,
-                                  color: Colors.white,
+                                  color: Ds.text,
                                   fontSize: 13),
                             ),
                           ),
@@ -354,24 +356,26 @@ class _HomeScreenState extends State<HomeScreen>
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
+                              DsRoute(
                                   builder: (_) => const DrawerScreen()),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding:
                                   const EdgeInsets.symmetric(vertical: 14),
                               side: BorderSide(
-                                  color: Colors.teal.withValues(alpha: 0.4)),
+                                  color: Ds.borderStrong
+                                      .withValues(alpha: 0.6)),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18)),
+                                  borderRadius:
+                                      BorderRadius.circular(Ds.radius)),
                             ),
                             icon: const Icon(
-                                Icons.apps, color: Color(0xFF2DD4A7)),
+                                Icons.apps, color: Ds.muted),
                             label: const Text(
                               'ВСЕ ПРИЛОЖЕНИЯ',
                               style: TextStyle(
                                   letterSpacing: 1.5,
-                                  color: Colors.white,
+                                  color: Ds.text,
                                   fontSize: 13),
                             ),
                           ),

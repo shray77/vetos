@@ -4,11 +4,20 @@ Android-лаунчер: домашний экран с живым метео-т�
 проектов ядра и каталогом всей вет-экосистемы shray77 (16 проектов с
 поиском и разделами). Нажимаешь Home — попадаешь в свою экосистему.
 
-**applicationId:** `ru.shray77.vetos` · v0.4.1 · sideload-APK (release-подпись, апдейты встают поверх)
+**applicationId:** `ru.shray77.vetos` · v0.5.0 · sideload-APK (release-подпись, апдейты встают поверх)
+
+## Дизайн
+
+С v0.5.0 VetOS несёт дизайн-систему экосистемы — **vet-ds v2.3**, голос
+C «Прибор» (графит + приборная бирюза #35C29A): токены в Material-слое
+(`lib/theme/ds.dart`), монохромные иконки вместо эмодзи, радиусы 8px,
+переходы экранов — кроссфейд 160 мс (аналог платформенных View Transitions
+DS), часы — serif-дисплей Prata (дисплейная кириллица периодики DS).
+Статусы THI/CCI — семантика DS, единая с веб-радарами.
 
 ## Скачать
 
-- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.4.1-arm64-v8a.apk` (~25 МБ, split-per-ABI)
+- APK: <https://github.com/shray77/vetos/releases/latest> → `VetOS-v0.5.0-arm64-v8a.apk` (~25 МБ, split-per-ABI)
 - Исходники — этот репозиторий; архивом — там же, в аттачах релиза.
 
 ## Что внутри

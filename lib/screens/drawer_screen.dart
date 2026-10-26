@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/launch_service.dart';
+import '../theme/ds.dart';
 
 /// Дровер всех установленных приложений с поиском.
 class DrawerScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Widget build(BuildContext context) {
     final apps = _filtered;
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F14),
+      backgroundColor: Ds.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -53,8 +54,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.home_outlined,
-                        color: Color(0xFF2DD4A7)),
+                    icon: const Icon(Icons.home_outlined, color: Ds.accent),
                   ),
                   Expanded(
                     child: Text(
@@ -62,7 +62,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                       style: const TextStyle(
                         fontSize: 14,
                         letterSpacing: 1.5,
-                        color: Colors.white,
+                        color: Ds.text,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -82,16 +82,16 @@ class _DrawerScreenState extends State<DrawerScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Ds.text),
                 decoration: InputDecoration(
                   hintText: 'поиск…',
-                  hintStyle: TextStyle(color: Colors.grey.shade600),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                  hintStyle: const TextStyle(color: Ds.faint),
+                  prefixIcon: const Icon(Icons.search, color: Ds.faint),
                   filled: true,
-                  fillColor: const Color(0xFF111827),
+                  fillColor: Ds.surface,
                   contentPadding: EdgeInsets.zero,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Ds.radius),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -112,7 +112,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               const EdgeInsets.symmetric(horizontal: 12),
                           leading: (icon != null && icon.isNotEmpty)
                               ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(Ds.radius),
                                   child: Image.memory(
                                     icon,
                                     width: 44,
@@ -123,13 +123,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                 )
                               : CircleAvatar(
                                   radius: 22,
-                                  backgroundColor: const Color(0xFF1F2937),
+                                  backgroundColor: Ds.surface2,
                                   child: Text(
                                     a.name.isEmpty
                                         ? '?'
                                         : a.name.substring(0, 1).toUpperCase(),
-                                    style: const TextStyle(
-                                        color: Color(0xFF2DD4A7)),
+                                    style: const TextStyle(color: Ds.accent),
                                   ),
                                 ),
                           title: Text(
@@ -137,7 +136,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                color: Colors.white,
+                                color: Ds.text,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500),
                           ),
@@ -145,8 +144,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
                             a.packageName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade600),
+                            style: const TextStyle(
+                                fontSize: 11, color: Ds.faint),
                           ),
                           onTap: () =>
                               LaunchService.launchPackage(a.packageName),

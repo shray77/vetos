@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/project.dart';
+import '../theme/ds.dart';
 
 /// Плитка проекта на домашнем экране.
 class ProjectTile extends StatelessWidget {
@@ -20,14 +21,14 @@ class ProjectTile extends StatelessWidget {
     final isApp = project.kind == ProjectKind.app;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(Ds.radius),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF111827),
-          borderRadius: BorderRadius.circular(24),
+          color: Ds.surface,
+          borderRadius: BorderRadius.circular(Ds.radius),
           border: Border.all(
-            color: project.color.withValues(alpha: 0.25),
+            color: project.color.withValues(alpha: 0.3),
           ),
         ),
         child: Column(
@@ -36,7 +37,7 @@ class ProjectTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(project.icon, style: const TextStyle(fontSize: 30)),
+                Icon(project.icon, size: 28, color: project.color),
                 _statusDot(isApp),
               ],
             ),
@@ -46,7 +47,7 @@ class ProjectTile extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: Ds.text,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -54,9 +55,9 @@ class ProjectTile extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               isApp && !installed ? 'не установлен · веб' : project.subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade500,
+                color: Ds.faint,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -69,13 +70,12 @@ class ProjectTile extends StatelessWidget {
 
   Widget _statusDot(bool isApp) {
     if (!isApp) {
-      return Icon(Icons.language,
-          size: 16, color: Colors.grey.shade600);
+      return const Icon(Icons.language, size: 16, color: Ds.faint);
     }
     return Icon(
       installed ? Icons.check_circle : Icons.circle_outlined,
       size: 16,
-      color: installed ? const Color(0xFF2DD4A7) : Colors.grey.shade600,
+      color: installed ? Ds.accent : Ds.faint,
     );
   }
 }

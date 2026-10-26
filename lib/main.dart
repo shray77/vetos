@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'screens/home_screen.dart';
+import 'theme/ds.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,16 +30,8 @@ class VetOsApp extends StatelessWidget {
     return MaterialApp(
       title: 'VetOS',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0B0F14),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2DD4A7),
-          brightness: Brightness.dark,
-        ),
-        fontFamily: 'Roboto',
-        useMaterial3: true,
-      ),
+      // Дизайн-система vet-ds v2.3, голос C «Прибор»: токены в Material-слое.
+      theme: Ds.theme(),
       home: const HomeScreen(),
     );
   }

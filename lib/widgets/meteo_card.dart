@@ -1,9 +1,9 @@
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../models/meteo.dart';
+import '../theme/ds.dart';
 
 /// Живой метео-тайл: THI станции по умолчанию + CCI (комфорт, °C) + мини-прогноз на 24 ч.
 class MeteoCard extends StatelessWidget {
@@ -51,18 +51,17 @@ class MeteoCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF111827),
+              Ds.surface,
               Color.lerp(
-                const Color(0xFF111827),
-                status?.color ?? const Color(0xFF1F2937),
+                Ds.surface,
+                status?.color ?? Ds.surface2,
                 0.35,
               )!,
             ],
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(Ds.radius),
           border: Border.all(
-            color: (status?.color ?? const Color(0xFF374151))
-                .withValues(alpha: 0.35),
+            color: (status?.color ?? Ds.border).withValues(alpha: 0.4),
           ),
         ),
         child: Column(
@@ -80,7 +79,7 @@ class MeteoCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           letterSpacing: 1.2,
-                          color: Colors.grey.shade400,
+                          color: Ds.muted,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -93,7 +92,7 @@ class MeteoCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 52,
                               fontWeight: FontWeight.w700,
-                              color: status?.color ?? Colors.grey,
+                              color: status?.color ?? Ds.faint,
                               height: 1.0,
                             ),
                           ),
@@ -132,8 +131,8 @@ class MeteoCard extends StatelessWidget {
                 else
                   IconButton(
                     onPressed: onRetry,
-                    icon: Icon(Icons.refresh,
-                        color: Colors.grey.shade400, size: 20),
+                    icon: const Icon(Icons.refresh,
+                        color: Ds.muted, size: 20),
                   ),
               ],
             ),
@@ -154,13 +153,12 @@ class MeteoCard extends StatelessWidget {
             if (error != null && s == null)
               Row(
                 children: [
-                  Icon(Icons.cloud_off, size: 14, color: Colors.red.shade300),
+                  Icon(Icons.cloud_off, size: 14, color: Ds.red),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       error!,
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.red.shade300),
+                      style: TextStyle(fontSize: 12, color: Ds.red),
                     ),
                   ),
                   TextButton(onPressed: onRetry, child: const Text('повтор')),
@@ -169,7 +167,7 @@ class MeteoCard extends StatelessWidget {
             else
               _Sparkline(
                 values: forecastStation?.thi ?? const [],
-                accent: status?.color ?? const Color(0xFF2DD4A7),
+                accent: status?.color ?? Ds.accent,
               ),
             const SizedBox(height: 8),
             Text(
@@ -177,7 +175,7 @@ class MeteoCard extends StatelessWidget {
                   ? 'метео-радар · загрузка…'
                   : '${s.name} · срез $fetchedAgoMin мин назад · тап — станция'
                     '${forecastStation != null ? ' · прогноз от $h0 МСК' : ''}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              style: const TextStyle(fontSize: 12, color: Ds.faint),
             ),
           ],
         ),
@@ -192,9 +190,9 @@ class MeteoCard extends StatelessWidget {
         children: [
           Text(value,
               style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600)),
+                  fontSize: 15, fontWeight: FontWeight.w600, color: Ds.text)),
           Text(label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+              style: const TextStyle(fontSize: 11, color: Ds.faint)),
         ],
       ),
     );
@@ -215,7 +213,7 @@ class _Sparkline extends StatelessWidget {
         height: 44,
         child: Center(
           child: Text('прогноз: —',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              style: const TextStyle(fontSize: 12, color: Ds.faint)),
         ),
       );
     }
@@ -250,8 +248,7 @@ class _SparkPainter extends CustomPainter {
       if (th >= minV && th <= maxV) {
         final y = size.height * (1 - (th - minV) / span);
         final paint = Paint()
-          ..color = (th >= 72 ? Colors.orange : Colors.yellow)
-              .withValues(alpha: 0.35)
+          ..color = (th >= 72 ? Ds.orange : Ds.amber).withValues(alpha: 0.35)
           ..strokeWidth = 1;
         canvas.drawLine(
             Offset(0, y), Offset(size.width, y), paint);

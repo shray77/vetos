@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../services/launch_service.dart';
+import '../theme/ds.dart';
 
 /// Встроенный браузер для веб-плиток: никакого тулбара Chrome —
 /// свой минимальный хром (домен, прогресс, перезагрузка, «в Chrome»).
@@ -106,7 +107,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
         if (!didPop) _onBack();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0B0F14),
+        backgroundColor: Ds.bg,
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -119,7 +120,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       tooltip: 'закрыть',
-                      icon: const Icon(Icons.close, color: Colors.white70),
+                      icon: const Icon(Icons.close, color: Ds.muted),
                     ),
                     Expanded(
                       child: Column(
@@ -131,7 +132,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Ds.text,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.3,
@@ -141,8 +142,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
                             widget.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
+                            style: const TextStyle(
+                              color: Ds.faint,
                               fontSize: 10.5,
                             ),
                           ),
@@ -152,8 +153,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
                     IconButton(
                       onPressed: _openInChrome,
                       tooltip: 'открыть в Chrome',
-                      icon: Icon(Icons.open_in_new,
-                          color: Colors.grey.shade400, size: 20),
+                      icon: const Icon(Icons.open_in_new,
+                          color: Ds.muted, size: 20),
                     ),
                     IconButton(
                       onPressed: () => _controller.reload(),
@@ -164,31 +165,32 @@ class _BrowserScreenState extends State<BrowserScreen> {
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Icon(Icons.refresh,
-                              color: Colors.grey.shade400, size: 20),
+                          : const Icon(Icons.refresh,
+                              color: Ds.muted, size: 20),
                     ),
                   ],
                 ),
               ),
-              // Тонкая полоса прогресса вместо полосы Chrome.
+              // Тонкая полоса прогресса вместо полосы Chrome — аналог
+              // платформенного прогресса чтения DS (блок 28), цвет — акцент.
               SizedBox(
                 height: 2,
                 child: LinearProgressIndicator(
                   value: loading ? _progress / 100 : 0,
                   minHeight: 2,
                   backgroundColor: Colors.transparent,
-                  color: const Color(0xFF2DD4A7),
+                  color: Ds.accent,
                 ),
               ),
               if (_mainFrameError != null)
                 Container(
                   width: double.infinity,
-                  color: Colors.red.shade900.withValues(alpha: 0.35),
+                  color: Ds.red.withValues(alpha: 0.18),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   child: Text(
                     _mainFrameError!,
-                    style: TextStyle(color: Colors.red.shade100, fontSize: 11),
+                    style: const TextStyle(color: Ds.red, fontSize: 11),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

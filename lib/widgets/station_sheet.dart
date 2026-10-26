@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/meteo.dart';
+import '../theme/ds.dart';
 
 /// Быстрый выбор станции метео-тайла: тёмный нижний шит с поиском.
 /// Станции = районы Ростовской обл. (Таганрог, Новочеркасск, …).
@@ -11,9 +12,9 @@ Future<MeteoStation?> showStationSheet(
 }) {
   return showModalBottomSheet<MeteoStation>(
     context: context,
-    backgroundColor: const Color(0xFF111827),
+    backgroundColor: Ds.surface,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(Ds.radius)),
     ),
     isScrollControlled: true,
     builder: (_) => StationSheet(stations: stations, currentId: currentId),
@@ -63,7 +64,7 @@ class _StationSheetState extends State<StationSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade700,
+                color: Ds.borderStrong,
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
@@ -76,14 +77,14 @@ class _StationSheetState extends State<StationSheet> {
                     style: TextStyle(
                       fontSize: 12,
                       letterSpacing: 1.5,
-                      color: Colors.white,
+                      color: Ds.text,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Spacer(),
                   Text(
                     'районы РО · 49',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                    style: TextStyle(fontSize: 11, color: Ds.faint),
                   ),
                 ],
               ),
@@ -93,17 +94,16 @@ class _StationSheetState extends State<StationSheet> {
               child: TextField(
                 autofocus: false,
                 onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Ds.text),
                 decoration: InputDecoration(
                   hintText: 'поиск: таганрог, новочеркасск…',
-                  hintStyle: TextStyle(color: Colors.grey.shade600),
-                  prefixIcon:
-                      Icon(Icons.search, color: Colors.grey.shade500),
+                  hintStyle: const TextStyle(color: Ds.faint),
+                  prefixIcon: const Icon(Icons.search, color: Ds.faint),
                   filled: true,
-                  fillColor: const Color(0xFF0B0F14),
+                  fillColor: Ds.bg,
                   contentPadding: EdgeInsets.zero,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(Ds.radius),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -113,8 +113,8 @@ class _StationSheetState extends State<StationSheet> {
               child: list.isEmpty
                   ? Center(
                       child: Text('ничего не нашлось',
-                          style: TextStyle(
-                              color: Colors.grey.shade600, fontSize: 13)),
+                          style: const TextStyle(
+                              color: Ds.faint, fontSize: 13)),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 4, 8, 18),
@@ -131,17 +131,14 @@ class _StationSheetState extends State<StationSheet> {
                             height: 10,
                             margin: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: status?.color ??
-                                  const Color(0xFF374151),
+                              color: status?.color ?? Ds.border,
                               shape: BoxShape.circle,
                             ),
                           ),
                           title: Text(
                             s.name,
                             style: TextStyle(
-                              color: isCurrent
-                                  ? const Color(0xFF2DD4A7)
-                                  : Colors.white,
+                              color: isCurrent ? Ds.accent : Ds.text,
                               fontSize: 14.5,
                               fontWeight: isCurrent
                                   ? FontWeight.w700
@@ -157,7 +154,7 @@ class _StationSheetState extends State<StationSheet> {
                             ].where((t) => t != null).join(' · '),
                             style: TextStyle(
                               fontSize: 12.5,
-                              color: status?.color ?? Colors.grey.shade500,
+                              color: status?.color ?? Ds.faint,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

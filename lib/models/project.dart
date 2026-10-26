@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ds.dart';
+
 /// Тип проекта экосистемы VetOS.
 enum ProjectKind { web, app }
 
@@ -31,8 +33,8 @@ class Project {
   final String id;
   final String title;
   final String subtitle;
-  /// Эмодзи как иконка плитки (без ассетов, отчётливо на тёмном фоне).
-  final String icon;
+  /// Иконка плитки — Material-глиф монохромом (правило DS: эмодзи в UI запрещены).
+  final IconData icon;
   final Color color;
   final ProjectKind kind;
   /// Веб-адрес (GitHub Pages / репозиторий) — открывается браузером/Custom Tabs.
@@ -76,8 +78,8 @@ const kProjects = <Project>[
     id: 'meteo',
     title: 'Метео-Радар',
     subtitle: 'THI · 49 станций Ростовской обл.',
-    icon: '🐄',
-    color: Color(0xFF2DD4A7),
+    icon: Icons.thermostat,
+    color: Ds.accent,
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vet-meteo/',
     category: ProjectCategory.monitor,
@@ -87,7 +89,7 @@ const kProjects = <Project>[
     id: 'heatmap',
     title: 'ВетКарта',
     subtitle: 'Эпизоотическая обстановка · вспышки',
-    icon: '🗺️',
+    icon: Icons.map,
     color: Color(0xFFF59E0B),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vet-heatmap/',
@@ -98,7 +100,7 @@ const kProjects = <Project>[
     id: 'insilico',
     title: 'VetInSilico',
     subtitle: '17 браузерных in-silico инструментов',
-    icon: '🧬',
+    icon: Icons.biotech,
     color: Color(0xFF818CF8),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vet-insilico/',
@@ -109,7 +111,7 @@ const kProjects = <Project>[
     id: 'learn',
     title: 'VetLearn AI',
     subtitle: 'LMS · AI-репетитор · треки',
-    icon: '🎓',
+    icon: Icons.school,
     color: Color(0xFF38BDF8),
     kind: ProjectKind.web,
     // Стабильное зеркало на GitHub Pages (офлайн-версия с резервным
@@ -125,7 +127,7 @@ const kProjects = <Project>[
     id: 'voice',
     title: 'VetVoice',
     subtitle: 'Дозировки голосом · vosk + gigaam',
-    icon: '🎙️',
+    icon: Icons.mic,
     color: Color(0xFFEF4444),
     kind: ProjectKind.app,
     url: 'https://github.com/shray77/vetvoice',
@@ -137,7 +139,7 @@ const kProjects = <Project>[
     id: 'eco',
     title: 'VetEco',
     subtitle: 'Диктовка → медкарта · AI-RAG',
-    icon: '🧠',
+    icon: Icons.psychology,
     color: Color(0xFFF472B6),
     kind: ProjectKind.app,
     url: 'https://github.com/shray77/vetvoice-rag',
@@ -151,7 +153,7 @@ const kProjects = <Project>[
     id: 'biothreat',
     title: 'BioThreat Watch',
     subtitle: 'Мировые сигналы биоугроз · ИИ-вердикты',
-    icon: '🦠',
+    icon: Icons.coronavirus,
     color: Color(0xFFA78BFA),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/biothreat-site/',
@@ -161,7 +163,7 @@ const kProjects = <Project>[
     id: 'vetflu-fc',
     title: 'VetFlu Forecast',
     subtitle: 'Риск гриппа по флайвеям · R-индекс',
-    icon: '🌡️',
+    icon: Icons.air,
     color: Color(0xFF34D399),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vetflu-forecast/',
@@ -171,7 +173,7 @@ const kProjects = <Project>[
     id: 'vetrecall',
     title: 'VetRecall',
     subtitle: 'Отзывы препаратов и сигналы',
-    icon: '📢',
+    icon: Icons.campaign,
     color: Color(0xFFFB923C),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vetrecall-site/',
@@ -183,7 +185,7 @@ const kProjects = <Project>[
     id: 'vettools',
     title: 'VetTools',
     subtitle: 'Клинические мини-калькуляторы',
-    icon: '🧰',
+    icon: Icons.calculate,
     color: Color(0xFFFBBF24),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vettools/',
@@ -195,7 +197,7 @@ const kProjects = <Project>[
     id: 'hub',
     title: 'ВетХаб',
     subtitle: 'Все дашборды в одном окне',
-    icon: '🛰️',
+    icon: Icons.hub,
     color: Color(0xFF60A5FA),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vet-hub/',
@@ -205,7 +207,7 @@ const kProjects = <Project>[
     id: 'digest',
     title: 'Вет-Дайджест',
     subtitle: 'Сводка недели · сигналы и вспышки',
-    icon: '📰',
+    icon: Icons.newspaper,
     color: Color(0xFF4ADE80),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vetdigest-site/',
@@ -215,7 +217,7 @@ const kProjects = <Project>[
     id: 'digest-audio',
     title: 'Аудио-дайджест',
     subtitle: 'Озвучка недели · Piper TTS',
-    icon: '🎧',
+    icon: Icons.headphones,
     color: Color(0xFF22D3EE),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vet-digest-llm/',
@@ -225,7 +227,7 @@ const kProjects = <Project>[
     id: 'rss',
     title: 'RSS-конвейер',
     subtitle: 'Источники → D1 → продукты',
-    icon: '🔄',
+    icon: Icons.rss_feed,
     color: Color(0xFF94A3B8),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/rss-core-site/',
@@ -237,7 +239,7 @@ const kProjects = <Project>[
     id: 'pilots',
     title: 'Вет-Пилоты',
     subtitle: 'TSPulse · Piper · GigaAM',
-    icon: '🧪',
+    icon: Icons.science,
     color: Color(0xFFC084FC),
     kind: ProjectKind.web,
     url: 'https://github.com/shray77/vet-pilots',
@@ -247,7 +249,7 @@ const kProjects = <Project>[
     id: 'vetflu-site',
     title: 'VetFlu · витрина',
     subtitle: 'Сайт проекта · карта флайвеев',
-    icon: '🐦',
+    icon: Icons.flight,
     color: Color(0xFF5EEAD4),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vetflu-site/',

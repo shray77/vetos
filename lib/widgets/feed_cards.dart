@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../models/feeds.dart';
 import '../models/meteo.dart';
+import '../models/project.dart';
+import '../theme/ds.dart';
 
 /// Карточки «живой ленты экосистемы» — горизонтальная лента под
 /// метео-тайлом. Каждая тянута из своего git-среза данных и
 /// открывает соответствующий проект по тапу.
 ///
+/// Акцент карточки — цвет проекта, куда она ведёт (реестр kProjects —
+/// единый источник), а не дублированный литерал.
+///
 /// Высота ленты фиксированная (156), ширина карточки 288.
 
-/// Общая оболочка карточки ленты: тёмный градиент + цвет проекта.
+Color _projectColor(String id) =>
+    kProjects.firstWhere((p) => p.id == id).color;
+
+/// Общая оболочка карточки ленты: графитовая поверхность + цвет проекта.
 class FeedShell extends StatelessWidget {
   final Color accent;
   final Widget child;
@@ -34,11 +42,11 @@ class FeedShell extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF111827),
-              Color.lerp(const Color(0xFF111827), accent, 0.22)!,
+              Ds.surface,
+              Color.lerp(Ds.surface, accent, 0.22)!,
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(Ds.radius),
           border: Border.all(color: accent.withValues(alpha: 0.35)),
         ),
         child: child,
@@ -73,7 +81,7 @@ class _Header extends StatelessWidget {
           right,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+          style: const TextStyle(fontSize: 11, color: Ds.faint),
         ),
       ],
     );
@@ -98,7 +106,7 @@ class OutlookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF2DD4A7);
+    final accent = _projectColor('meteo');
     final st = slice.byId(stationId) ?? slice.stations.firstOrNull;
     final thiMax = st?.thiMax7;
     final status = thiMax == null ? null : ThiStatus.of(thiMax);
@@ -121,20 +129,20 @@ class OutlookCard extends StatelessWidget {
                   fontSize: 34,
                   fontWeight: FontWeight.w700,
                   height: 1.0,
-                  color: status?.color ?? Colors.grey,
+                  color: status?.color ?? Ds.faint,
                 ),
               ),
               const SizedBox(width: 10),
               _chip(
                 'дн >72: ${st?.days72 ?? '—'}',
                 (st?.days72 ?? 0) > 0,
-                Colors.orange,
+                Ds.orange,
               ),
               const SizedBox(width: 6),
               _chip(
                 'дн >80: ${st?.days80 ?? '—'}',
                 (st?.days80 ?? 0) > 0,
-                Colors.red,
+                Ds.red,
               ),
             ],
           ),
@@ -145,7 +153,7 @@ class OutlookCard extends StatelessWidget {
             'максимум за ${slice.horizon} · обновлено ${_dmy(slice.generatedAt)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),
@@ -156,7 +164,7 @@ class OutlookCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: (active ? color : Colors.grey).withValues(alpha: 0.18),
+        color: (active ? color : Ds.faint).withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -164,7 +172,7 @@ class OutlookCard extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: active ? color : Colors.grey.shade400,
+          color: active ? color : Ds.muted,
         ),
       ),
     );
@@ -184,7 +192,7 @@ class _DayBars extends StatelessWidget {
         height: 34,
         child: Center(
           child: Text('по дням: —',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+              style: const TextStyle(fontSize: 11, color: Ds.faint)),
         ),
       );
     }
@@ -235,7 +243,7 @@ class OutbreaksCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFF59E0B);
+    final accent = _projectColor('heatmap');
     final recent = slice.recent(3);
 
     return FeedShell(
@@ -259,7 +267,7 @@ class OutbreaksCard extends StatelessWidget {
                     width: 7,
                     height: 7,
                     margin: const EdgeInsets.only(right: 8),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                         color: accent, shape: BoxShape.circle),
                   ),
                   Expanded(
@@ -269,14 +277,14 @@ class OutbreaksCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           fontSize: 13.5,
-                          color: Colors.white,
+                          color: Ds.text,
                           fontWeight: FontWeight.w500),
                     ),
                   ),
                   Text(
                     o.dateLabel,
-                    style: TextStyle(
-                        fontSize: 12.5, color: Colors.grey.shade400),
+                    style: const TextStyle(
+                        fontSize: 12.5, color: Ds.muted),
                   ),
                 ],
               ),
@@ -286,7 +294,7 @@ class OutbreaksCard extends StatelessWidget {
             'Ростовская обл. · с 2019 · тап — карта',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),
@@ -303,7 +311,7 @@ class VerifyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF818CF8);
+    final accent = _projectColor('insilico');
 
     return FeedShell(
       accent: accent,
@@ -311,28 +319,28 @@ class VerifyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Header('ПРОГНОЗ vs ФАКТ', 'ретро-проверка', accent),
+          _Header('ПРОГНОЗ vs ФАКТ', 'ретро-проверка', accent),
           const SizedBox(height: 8),
           Text(
             'расхождения: ${slice.verdict}',
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: Ds.text,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'MAE THI ${slice.thiMae?.toStringAsFixed(1) ?? '—'} ед'
             ' · ${slice.days ?? '—'} дн · ${slice.stations ?? '—'} ст',
-            style: TextStyle(fontSize: 12.5, color: Colors.grey.shade300),
+            style: const TextStyle(fontSize: 12.5, color: Ds.muted),
           ),
           const Spacer(),
           Text(
             'проверка от ${_dmy(slice.generatedAt)} · тап — радар',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),
@@ -349,7 +357,7 @@ class WeeklyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF38BDF8);
+    final accent = _projectColor('learn');
     final lines = slice.digest.take(3).toList();
 
     return FeedShell(
@@ -367,8 +375,8 @@ class WeeklyCard extends StatelessWidget {
                 l,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontSize: 12.5, color: Colors.grey.shade200, height: 1.3),
+                style: const TextStyle(
+                    fontSize: 12.5, color: Ds.muted, height: 1.3),
               ),
             ),
           const Spacer(),
@@ -376,7 +384,7 @@ class WeeklyCard extends StatelessWidget {
             'архив · ${slice.from} … ${slice.to} · тап — радар',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),
@@ -395,11 +403,13 @@ class TspulseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Цвет карточки = сила сигнала: выше порога — красный, перцентиль >= 80 —
+    // янтарный, иначе спокойный зелёный (семантика DS).
     final signal = (slice.daysOver ?? 0) > 0
-        ? const Color(0xFFEF4444)
+        ? Ds.red
         : (slice.percentileMax ?? 0) >= 80
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFF2DD4A7);
+            ? Ds.amber
+            : Ds.green;
     final diseases = slice.diseasesTop3;
 
     return FeedShell(
@@ -417,14 +427,14 @@ class TspulseCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: Ds.text,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'max ${slice.maxScore?.toStringAsFixed(2) ?? '—'} · '
             '${slice.percentileMax?.toStringAsFixed(1) ?? '—'} перцентиль',
-            style: TextStyle(fontSize: 12.5, color: Colors.grey.shade300),
+            style: const TextStyle(fontSize: 12.5, color: Ds.muted),
           ),
           if (diseases.isNotEmpty) ...[
             const SizedBox(height: 6),
@@ -432,7 +442,7 @@ class TspulseCard extends StatelessWidget {
               diseases,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12.5, color: Colors.grey.shade300),
+              style: const TextStyle(fontSize: 12.5, color: Ds.muted),
             ),
           ],
           const Spacer(),
@@ -441,7 +451,7 @@ class TspulseCard extends StatelessWidget {
             'выше ${slice.daysOver ?? 0} дн · тап — пилоты',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),
@@ -459,7 +469,7 @@ class DigestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF22D3EE);
+    final accent = _projectColor('digest-audio');
     final headline =
         slice.headline.isNotEmpty ? slice.headline : slice.summary;
 
@@ -475,9 +485,9 @@ class DigestCard extends StatelessWidget {
             headline,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12.5,
-              color: Colors.grey.shade200,
+              color: Ds.muted,
               height: 1.35,
             ),
           ),
@@ -487,7 +497,7 @@ class DigestCard extends StatelessWidget {
             'тап — дайджест и аудио',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: Ds.faint),
           ),
         ],
       ),

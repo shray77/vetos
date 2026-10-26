@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ds.dart';
+
 /// Статус THI (шкала стресса КРС, как в метео-радаре).
+/// Цвета — семантика vet-ds v2.3 (тёмные значения, AA на графите).
 class ThiStatus {
   final String label;
   final Color color;
   const ThiStatus(this.label, this.color);
 
   static ThiStatus of(double thi) {
-    if (thi >= 80) return const ThiStatus('экстрим', Color(0xFFEF4444));
-    if (thi >= 72) return const ThiStatus('стресс', Color(0xFFF97316));
-    if (thi >= 68) return const ThiStatus('внимание', Color(0xFFEAB308));
-    return const ThiStatus('норма', Color(0xFF2DD4A7));
+    if (thi >= 80) return const ThiStatus('экстрим', Ds.red);
+    if (thi >= 72) return const ThiStatus('стресс', Ds.orange);
+    if (thi >= 68) return const ThiStatus('внимание', Ds.amber);
+    return const ThiStatus('норма', Ds.green);
   }
 }
 
@@ -23,11 +26,11 @@ class CciStatus {
   const CciStatus(this.label, this.color);
 
   static CciStatus of(double cci) {
-    if (cci >= 40) return const CciStatus('жара·экстрим', Color(0xFFEF4444));
-    if (cci >= 30) return const CciStatus('жара·остор.', Color(0xFFF97316));
-    if (cci <= -30) return const CciStatus('холод·экстрим', Color(0xFF2563EB));
-    if (cci <= -10) return const CciStatus('холод·остор.', Color(0xFF60A5FA));
-    return const CciStatus('комфорт', Color(0xFF2DD4A7));
+    if (cci >= 40) return const CciStatus('жара·экстрим', Ds.red);
+    if (cci >= 30) return const CciStatus('жара·остор.', Ds.orange);
+    if (cci <= -30) return const CciStatus('холод·экстрим', Ds.blue);
+    if (cci <= -10) return const CciStatus('холод·остор.', Ds.blueSoft);
+    return const CciStatus('комфорт', Ds.green);
   }
 }
 

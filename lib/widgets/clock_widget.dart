@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../theme/ds.dart';
+
 /// Часы и дата — выделены в отдельный StatefulWidget, чтобы таймер 1с
 /// НЕ пересобирал весь HomeScreen (метео-карту, ленту, 6 плиток, дровер).
 ///
@@ -69,23 +71,27 @@ class _ClockWidgetState extends State<ClockWidget> {
       children: [
         Text(
           '${_two(_now.hour)}:${_two(_now.minute)}',
+          // Prata — дисплейный serif DS (фолбэк кириллицы периодики):
+          // цифры «мастхеда» домашнего экрана.
           style: widget.timeStyle ??
               const TextStyle(
+                fontFamily: 'Prata',
                 fontSize: 56,
-                fontWeight: FontWeight.w300,
-                color: Colors.white,
-                height: 1.0,
-                letterSpacing: 2,
+                fontWeight: FontWeight.w400,
+                color: Ds.text,
+                height: 1.05,
+                letterSpacing: 1,
               ),
         ),
         const SizedBox(height: 4),
         Text(
           _dateLabel().toUpperCase(),
+          // Оверлайн DS: моно-регистр с трекингом, акцентный цвет.
           style: widget.dateStyle ??
-              TextStyle(
+              const TextStyle(
                 fontSize: 12,
                 letterSpacing: 1.5,
-                color: Colors.teal.shade200,
+                color: Ds.accent,
               ),
         ),
       ],
