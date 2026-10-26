@@ -53,6 +53,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          # ПИН для golden-тестов (Task 176): кадры генерируются конкретной
+          # версией движка; unpinned stable = тихий дрейф рендера. Апгрейд =
+          # перегенерация базы: flutter test --update-goldens
+          flutter-version: '3.47.8'
           channel: stable
           cache: true
 
@@ -61,6 +65,11 @@ jobs:
 
       - name: Download pub deps
         run: flutter pub get
+
+      - name: Precache SDK fonts
+        # material_fonts нужны golden-тестам (FontLoader читает их из кеша
+        # SDK; без предкеша первый тест мог стартовать раньше загрузки)
+        run: flutter precache --universal
 
       - name: Analyze
         # Строгий анализ: любые info/warning валят шаг (как flutter analyze по умолчанию)
