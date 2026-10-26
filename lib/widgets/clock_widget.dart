@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart' as clock;
 import 'package:flutter/material.dart';
 
 import '../theme/ds.dart';
@@ -25,8 +26,11 @@ class ClockWidget extends StatefulWidget {
 }
 
 class _ClockWidgetState extends State<ClockWidget> {
+  // clock.now() вместо DateTime.now() (Task 176): golden-тесты фиксируют
+  // время через Clock.fixed — иначе кадр зависит от минуты прогона
+  // (поймано stability-прогонами: 3-й подряд ран пересекал минуту).
   Timer? _t;
-  DateTime _now = DateTime.now();
+  DateTime _now = clock.now;
 
   static const _months = [
     'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
@@ -42,7 +46,7 @@ class _ClockWidgetState extends State<ClockWidget> {
     super.initState();
     // Поллинг 1с копеечный (DateTime.now), но setState — только при смене минуты.
     _t = Timer.periodic(const Duration(seconds: 1), (_) {
-      final now = DateTime.now();
+      final now = clock.now;
       if (now.minute != _now.minute ||
           now.hour != _now.hour ||
           now.day != _now.day) {
