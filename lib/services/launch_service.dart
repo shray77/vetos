@@ -66,11 +66,17 @@ class LaunchService {
     try {
       final list =
           await _ch.invokeListMethod<Map>('listApps', {'includeSystem': true});
-      if (list == null) return const [];
+      if (list == null) return <AppEntry>[];
       return list.map((m) => AppEntry.fromMap(Map<String, dynamic>.from(m)))
           .toList();
     } catch (_) {
-      return const [];
+      // ГРАБЛЯ (поймал golden-тест 05_drawer, Task 176): раньше тут был
+      // const [] — немодифицируемый список, и DrawerScreen._load делал
+      // apps.sort(...) → UnsupportedError «Cannot modify an unmodifiable
+      // list». На устройстве канал обычно отвечает, но любой нативный сбой
+      // (или новый платформенный таргет без моста) = крашер вместо пустого
+      // ящика. Пустой список должен быть выращиваемым.
+      return <AppEntry>[];
     }
   }
 
