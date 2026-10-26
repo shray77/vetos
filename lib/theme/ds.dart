@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Перевод vet-ds v2.3 в Material-слой VetOS: голос C «Прибор» (тёмный).
+/// Перевод vet-ds v2.3.4 в Material-слой VetOS: голос C «Прибор» (тёмный).
 ///
 /// Источник токенов — vet-ds/vet-ds.css, блок [data-theme="instrument"].
+///
+/// v2.3.4 (Task 176): синхрон с ядром через scripts/ds_gate.py — гейт парсит
+/// этот файл против design/tokens.json (срез ядра из vet-ds). Поймал и закрыл
+/// дрейф border-strong v2.3.2 (рамки инпутов были 1.5–1.7:1 — §1.4.11).
 /// VetOS — приборный хаб экосистемы (метео, лента данных, дашборды),
 /// поэтому из пяти тем DS выбрана C: графит + приборная бирюза.
 ///
@@ -25,7 +29,7 @@ abstract final class Ds {
   static const Color surface = Color(0xFF1A1D22);
   static const Color surface2 = Color(0xFF20242B);
   static const Color border = Color(0xFF262A31);
-  static const Color borderStrong = Color(0xFF353B44);
+  static const Color borderStrong = Color(0xFF6A7590);
   static const Color rule = Color(0xFF5A6472);
 
   // -- Текст ---------------------------------------------------------------
