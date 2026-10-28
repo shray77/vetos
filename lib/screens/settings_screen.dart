@@ -173,7 +173,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 _builtin
                     ? 'веб-плитки открываются внутри VetOS — без тулбара Chrome; '
-                        'внутри есть кнопка «в Chrome» (VetLearn всегда в Chrome — там логины)'
+                        'внутри есть кнопка «в Chrome» (для сайтов, где нужны '
+                        'логины или сохранённые пароли)'
                     : 'веб-плитки открываются Chrome Custom Tabs — с полосой и куками Chrome',
                 style: ts.bodySmall,
               ),
