@@ -125,7 +125,14 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                   child: Text(
                                     a.name.isEmpty
                                         ? '?'
-                                        : a.name.substring(0, 1).toUpperCase(),
+                                        // characters.first — не substring(0, 1):
+                                        // имя, начинающееся с эмодзи/суррогатной
+                                        // пары, не даст битый глиф в кружке.
+                                        // (Расширение реэкспортируется
+                                        // Flutter'ом через material.dart —
+                                        // отдельный импорт package:characters
+                                        // не нужен.)
+                                        : a.name.characters.first.toUpperCase(),
                                     style: ts.labelLarge!
                                         .copyWith(color: Ds.accent),
                                   ),

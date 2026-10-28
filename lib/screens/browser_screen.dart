@@ -9,13 +9,10 @@ import '../theme/ds.dart';
 ///
 /// «Назад»/жест назад сначала идут по истории WebView, потом закрывают экран.
 ///
-/// Тюн под Helio G35 / 4 ГБ ОЗУ (Oppo A18):
-///  - мобильный UA: серверы отдают лёгкие версии страниц вместо десктопных;
-///  - force-enamble zoom: страницы сами по себе скейлятся под 6.56″ HD+;
-///  - отключён file/content access (лаунчеру не нужно открывать локальные
-///    файлы через WebView — экономим permissions и attack surface);
-///  - лимит кэша WebView 8 МБ (по умолчанию не ограничен);
-///  - DOM storage включён — некоторые PWA без него не работают.
+/// Тюн под Helio G35 / 4 ГБ ОЗУ (Oppo A18): мобильный UA — серверы
+/// отдают лёгкие версии страниц вместо десктопных. Остальное (зум,
+/// кэш, доступ к file/content) — платформенные дефолты WebView,
+/// явно не переопределяется.
 class BrowserScreen extends StatefulWidget {
   final String url;
   final String title;
@@ -43,10 +40,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
         'Mozilla/5.0 (Linux; Android 13; CPH2591) AppleWebKit/537.36 '
         '(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
       )
-      // Лаунчеру не нужно открывать локальные файлы через WebView.
-      ..setOnConsoleMessage((m) {
-        // dev-only: игнорируем шум консоли страницы
-      })
+      // Шум консоли страницы глушим — лаунчеру не нужен лог WebView.
+      ..setOnConsoleMessage((m) {})
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (p) {

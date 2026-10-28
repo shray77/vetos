@@ -83,25 +83,35 @@ class MeteoService extends ChangeNotifier {
     try {
       final results = await Future.wait<dynamic>([
         _getJson('$_base/latest.json'),
-        _getJson('$_base/forecast.json'),
+        _tryJson('$_base/forecast.json'),
       ]);
       latest = MeteoSlice.fromJson(results[0] as Map<String, dynamic>);
-      forecast = Forecast.fromJson(results[1] as Map<String, dynamic>);
+      final f = results[1] as Map<String, dynamic>?;
+      if (f == null) {
+        error = 'прогноз не подгрузился';
+      } else {
+        forecast = Forecast.fromJson(f);
+      }
       fetchedAt = DateTime.now();
       _saveCached();
-    } catch (e) {
-      // Один из ответов мог не прийти: пробуем latest отдельно.
-      try {
-        latest = MeteoSlice.fromJson(await _getJson('$_base/latest.json'));
-        fetchedAt = DateTime.now();
-        _saveCached();
-        error = 'прогноз не подгрузился';
-      } catch (_) {
-        error = 'метео недоступно';
-      }
+    } catch (_) {
+      // Упал latest — он уже израсходовал свои 3 попытки внутри _getJson,
+      // повторно не тянем (старый catch-ретрай растягивал «крутилку» до
+      // ~100 с: 15 с таймаут + 2 с пауза × 6). Сразу честное error-состояние.
+      error = 'метео недоступно';
     } finally {
       loading = false;
       notifyListeners();
+    }
+  }
+
+  /// Прогноз — второй по важности: если не дожались, latest всё равно
+  /// рисуем (мягкая деградация), поэтому его ошибки глотаем в null.
+  Future<Map<String, dynamic>?> _tryJson(String url) async {
+    try {
+      return await _getJson(url);
+    } catch (_) {
+      return null;
     }
   }
 

@@ -1,11 +1,11 @@
 {
-    "name": "vetos",
-    "short_name": "vetos",
+    "name": "VetOS — каталог вет-экосистемы",
+    "short_name": "VetOS",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#14161A",
+    "theme_color": "#35C29A",
+    "description": "Мобильный каталог вет-экосистемы: живой метео-тайл THI, лента данных, 18 проектов.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

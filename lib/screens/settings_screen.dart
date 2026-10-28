@@ -228,6 +228,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _section('О VetOS'),
             _aboutTile(
+              // Версия — вторая точка правды: синхронно с pubspec.yaml
+              // (version: 0.6.0+9, там комментарий-якорь). Меняем вместе,
+              // иначе тайл «О VetOS» соврёт.
               'VetOS 0.6.0 · ru.shray77.vetos',
               'лаунчер-хаб вет-экосистемы: 18 проектов, живой метео-тайл, лента данных, встроенный браузер',
             ),

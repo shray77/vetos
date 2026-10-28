@@ -14,8 +14,12 @@ import '../theme/ds.dart';
 ///
 /// Высота ленты фиксированная (156), ширина карточки 288.
 
+/// Цвет проекта по id. Литеральный orElse у firstWhere невозможен
+/// (он обязан вернуть Project, а не Color), поэтому деградация в
+/// [Ds.accent] — через where + firstOrNull: неизвестный id (переименование/
+/// удаление в реестре) больше не роняет build() с StateError.
 Color _projectColor(String id) =>
-    kProjects.firstWhere((p) => p.id == id).color;
+    kProjects.where((p) => p.id == id).firstOrNull?.color ?? Ds.accent;
 
 /// Общая оболочка карточки ленты: графитовая поверхность + цвет проекта.
 class FeedShell extends StatelessWidget {
@@ -306,7 +310,12 @@ class VerifyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = _projectColor('insilico');
+    // Акцент — цвет тап-таргета (meteo — home_screen._feedStrip),
+    // а не источник ретро-проверки: конвенция «акцент карточки — цвет
+    // проекта, куда она ведёт» (шапка файла). Golden-риск: карточки ленты
+    // не покрыты базой (кадры 01/02/06 снимают офлайн-состояние, срезы
+    // null) — пересъёмка не нужна.
+    final accent = _projectColor('meteo');
     final ts = Theme.of(context).textTheme;
 
     return FeedShell(
@@ -349,7 +358,12 @@ class WeeklyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = _projectColor('learn');
+    // Акцент — цвет тап-таргета (meteo — home_screen._feedStrip),
+    // не цвет вет-обучения: конвенция «акцент карточки — цвет проекта,
+    // куда она ведёт» (шапка файла). Golden-риск: карточки ленты
+    // не покрыты базой (кадры 01/02/06 снимают офлайн-состояние,
+    // срезы null) — пересъёмка не нужна.
+    final accent = _projectColor('meteo');
     final lines = slice.digest.take(3).toList();
     final ts = Theme.of(context).textTheme;
 

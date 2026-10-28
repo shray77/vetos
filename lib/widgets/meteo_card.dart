@@ -32,7 +32,7 @@ class MeteoCard extends StatelessWidget {
     this.onLongPress,
   });
 
-  String _fmt(double? v, [String suffix = '']) =>
+  String _fmt(double? v) =>
       v == null ? '—' : v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 1);
 
   @override
@@ -133,7 +133,7 @@ class MeteoCard extends StatelessWidget {
               children: [
                 _metric('${_fmt(s?.t)}°', 'темп', ts.titleMedium, ts.bodySmall),
                 _metric('${s?.rh ?? '—'}%', 'влажн', ts.titleMedium, ts.bodySmall),
-                _metric('${_fmt(s?.wind, ' ')} м/с', 'ветер ${s?.windDirLabel ?? ''}',
+                _metric('${_fmt(s?.wind)} м/с', 'ветер ${s?.windDirLabel ?? ''}',
                     ts.titleMedium, ts.bodySmall),
                 _metric(_fmt(s?.thiAdj), 'THIadj', ts.titleMedium, ts.bodySmall),
                 _metric(

@@ -43,6 +43,11 @@ abstract final class Ds {
   static const Color amber = Color(0xFFE0A438);
   static const Color orange = Color(0xFFE08A4F);
   static const Color blue = Color(0xFF6FA8DC);
+  // blueSoft — осознанный локальный алиас синего dark-темы (vet-ds.css:210):
+  // в срезе instrument (design/tokens.json) этого ключа нет, ds_gate ключи
+  // не сверяет (scripts/ds_gate.py смотрит только токены темы). Контраст
+  // ~7.3:1 на графите — проверен аудитом 183, менять значение = golden-риск.
+  // Кандидат: завести blue-soft в ядре DS v2.4.2 и синхронизировать срез.
   static const Color blueSoft = Color(0xFF82A9CC);
   static const Color violet = Color(0xFFA78BFA);
 
