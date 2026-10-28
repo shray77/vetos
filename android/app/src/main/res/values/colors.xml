@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Фон сплэша VetOS (Task 183): графит голоса C «Прибор» (Ds.bg #14161A)
+         из lib/theme/ds.dart. Приложение однотемно-тёмное — белый системный
+         сплэш вспыхивал на каждом холодном старте лаунчера. -->
+    <color name="launch_bg">#14161A</color>
+</resources>

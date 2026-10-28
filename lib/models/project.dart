@@ -67,7 +67,8 @@ class Project {
   });
 }
 
-/// Реестр проектов вет-экосистемы shray77 (v0.4.0: 16 проектов).
+/// Реестр проектов вет-экосистемы shray77 (v0.4.0: 16 проектов, Task 183: +ФЭКРТ
+/// и ВетПетри — 18).
 ///
 /// Первые шесть — ядро (home: true): их плитки стоят на домашнем экране.
 /// Остальные открываются из каталога «Все проекты» — там поиск и разделы.
@@ -179,6 +180,16 @@ const kProjects = <Project>[
     url: 'https://shray77.github.io/vetrecall-site/',
     category: ProjectCategory.monitor,
   ),
+  Project(
+    id: 'vetfecrt',
+    title: 'ФЭКРТ',
+    subtitle: 'Резистентность к антигельминтикам · WAAVP-2023',
+    icon: Icons.grain,
+    color: Color(0xFF6D4FC4),
+    kind: ProjectKind.web,
+    url: 'https://shray77.github.io/vetfecrt-site/',
+    category: ProjectCategory.monitor,
+  ),
 
   // ─── Инструменты ────────────────────────────────────────────────────
   Project(
@@ -253,6 +264,16 @@ const kProjects = <Project>[
     color: Color(0xFF5EEAD4),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/vetflu-site/',
+    category: ProjectCategory.lab,
+  ),
+  Project(
+    id: 'vetpetri',
+    title: 'ВетПетри',
+    subtitle: 'Научная песочница чашки Петри · микробиология',
+    icon: Icons.adjust,
+    color: Color(0xFFA3E635),
+    kind: ProjectKind.web,
+    url: 'https://shray77.github.io/vetpetri/',
     category: ProjectCategory.lab,
   ),
 ];

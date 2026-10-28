@@ -236,162 +236,178 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final st = _meteo.latest?.byId(_stationId) ??
-        _meteo.latest?.stations.firstOrNull;
-    final fc = _meteo.forecast?.byId(st?.id ?? _stationId);
-    final fetchedAgo = _meteo.fetchedAt == null
-        ? 0
-        : DateTime.now().difference(_meteo.fetchedAt!).inMinutes;
-    final strip = _feedStrip(st?.id ?? _stationId);
-
     return PopScope(
       canPop: false, // лаунчер не закрывается кнопкой «назад»
-      child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Ds.bg, Ds.bg, Ds.surface],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Часы (собственный StatefulWidget — тайлер 1с НЕ дёргает
-                  // весь HomeScreen) + кнопка настроек.
-                  Row(
+      // Живой тайл (Task 183): экран подписан на сервисы данных —
+      // notifyListeners() от _meteo/_feeds (таймер 10–60 мин, возврат
+      // с resumed-статуса, ручной «повтор») перестраивает метео-карту
+      // и ленту. До этого notifyListeners падал в пустоту: данные
+      // обновлялись, а экран — только побочным setState (холодный старт,
+      // визит настроек). СЛЕДСТВИЕ ДЛЯ GOLDEN: старая база 01/02/06
+      // запекла УСТАРЕВШИЙ кадр «…» (spinner): в тестах MethodChannel
+      // висит и setState из _checkInstalled не приходил — экран годами
+      // не перестраивался после settle сервисов. База перегенерирована:
+      // теперь кадр показывает честное офлайн-состояние («—», «метео
+      // недоступно», кнопка «повтор»), как и заявлял комментарий теста.
+      child: ListenableBuilder(
+        listenable: Listenable.merge([_meteo, _feeds]),
+        builder: (context, _) {
+          final st = _meteo.latest?.byId(_stationId) ??
+              _meteo.latest?.stations.firstOrNull;
+          final fc = _meteo.forecast?.byId(st?.id ?? _stationId);
+          final fetchedAgo = _meteo.fetchedAt == null
+              ? 0
+              : DateTime.now().difference(_meteo.fetchedAt!).inMinutes;
+          final strip = _feedStrip(st?.id ?? _stationId);
+
+          return Scaffold(
+            body: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Ds.bg, Ds.bg, Ds.surface],
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Expanded(child: ClockWidget()),
-                      IconButton(
-                        onPressed: _openSettings,
-                        icon: const Icon(Icons.tune,
-                            color: Ds.muted, size: 26),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  // Хаб скроллится целиком: метео → лента → плитки → дровер.
-                  Expanded(
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: 8),
-                      children: [
-                        MeteoCard(
-                          station: st,
-                          forecastStation: fc,
-                          h0: _meteo.forecast?.h0 ?? '',
-                          loading: _meteo.loading,
-                          error: _meteo.error,
-                          fetchedAgoMin: fetchedAgo,
-                          onTap: _pickStation,
-                          onLongPress: () => _openProject(
-                              kProjects.firstWhere((p) => p.id == 'meteo')),
-                          onRetry: () {
-                            _meteo.refresh();
-                            _feeds.refresh();
-                          },
-                        ),
-                        if (strip != null) ...[
-                          const SizedBox(height: 14),
-                          strip,
+                      // Часы (собственный StatefulWidget — тайлер 1с НЕ дёргает
+                      // весь HomeScreen) + кнопка настроек.
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Expanded(child: ClockWidget()),
+                          IconButton(
+                            onPressed: _openSettings,
+                            icon: const Icon(Icons.tune,
+                                color: Ds.muted, size: 26),
+                          ),
                         ],
-                        const SizedBox(height: 14),
-                        // На домашнем — только ядро экосистемы (home: true);
-                        // остальные проекты — в каталоге «Все проекты» (v0.4.0).
-                        GridView.count(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.18,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
+                      ),
+                      const SizedBox(height: 14),
+                      // Хаб скроллится целиком: метео → лента → плитки → дровер.
+                      Expanded(
+                        child: ListView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 8),
                           children: [
-                            for (final p in kProjects.where((p) => p.home))
-                              ProjectTile(
-                                project: p,
-                                installed: _installed[p.package] ?? false,
-                                onTap: () => _openProject(p),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Каталог всех проектов: поиск + разделы.
-                        // DS-иерархия: экосистема — акцент, система — нейтрально.
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.of(context).push(
-                              DsRoute(
-                                builder: (_) => ProjectsScreen(
-                                  onOpen: _openProject,
-                                  installed: _installed,
+                            MeteoCard(
+                              station: st,
+                              forecastStation: fc,
+                              h0: _meteo.forecast?.h0 ?? '',
+                              loading: _meteo.loading,
+                              error: _meteo.error,
+                              fetchedAgoMin: fetchedAgo,
+                              onTap: _pickStation,
+                              onLongPress: () => _openProject(
+                                  kProjects.firstWhere((p) => p.id == 'meteo')),
+                              onRetry: () {
+                                _meteo.refresh();
+                                _feeds.refresh();
+                              },
+                            ),
+                            if (strip != null) ...[
+                              const SizedBox(height: 14),
+                              strip,
+                            ],
+                            const SizedBox(height: 14),
+                            // На домашнем — только ядро экосистемы (home: true);
+                            // остальные проекты — в каталоге «Все проекты» (v0.4.0).
+                            GridView.count(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.18,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                for (final p in kProjects.where((p) => p.home))
+                                  ProjectTile(
+                                    project: p,
+                                    installed: _installed[p.package] ?? false,
+                                    onTap: () => _openProject(p),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // Каталог всех проектов: поиск + разделы.
+                            // DS-иерархия: экосистема — акцент, система — нейтрально.
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context).push(
+                                  DsRoute(
+                                    builder: (_) => ProjectsScreen(
+                                      onOpen: _openProject,
+                                      installed: _installed,
+                                    ),
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(
+                                      color: Ds.accent.withValues(alpha: 0.4)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(Ds.radius)),
+                                ),
+                                icon: const Icon(Icons.dashboard_outlined,
+                                    color: Ds.accent),
+                                label: Text(
+                                  'ВСЕ ПРОЕКТЫ · ${kProjects.length}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge!
+                                      .copyWith(letterSpacing: 1.4),
                                 ),
                               ),
                             ),
-                            style: OutlinedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(
-                                  color: Ds.accent.withValues(alpha: 0.4)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(Ds.radius)),
+                            const SizedBox(height: 12),
+                            // Дровер всех приложений.
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context).push(
+                                  DsRoute(
+                                      builder: (_) => const DrawerScreen()),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(
+                                      color: Ds.borderStrong
+                                          .withValues(alpha: 0.6)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(Ds.radius)),
+                                ),
+                                icon: const Icon(
+                                    Icons.apps, color: Ds.muted),
+                                label: Text(
+                                  'ВСЕ ПРИЛОЖЕНИЯ',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge!
+                                      .copyWith(letterSpacing: 1.4),
+                                ),
+                              ),
                             ),
-                            icon: const Icon(Icons.dashboard_outlined,
-                                color: Ds.accent),
-                            label: Text(
-                              'ВСЕ ПРОЕКТЫ · ${kProjects.length}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge!
-                                  .copyWith(letterSpacing: 1.4),
-                            ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        // Дровер всех приложений.
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.of(context).push(
-                              DsRoute(
-                                  builder: (_) => const DrawerScreen()),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(
-                                  color: Ds.borderStrong
-                                      .withValues(alpha: 0.6)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(Ds.radius)),
-                            ),
-                            icon: const Icon(
-                                Icons.apps, color: Ds.muted),
-                            label: Text(
-                              'ВСЕ ПРИЛОЖЕНИЯ',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge!
-                                  .copyWith(letterSpacing: 1.4),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
