@@ -51,3 +51,4 @@ app.*.map.json
 android/app/*.jks
 android/app/*.keystore
 vetos-release.jks
+test/failures/
