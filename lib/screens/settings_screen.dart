@@ -248,6 +248,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'https://github.com/shray77/vetos/blob/main/docs/vetos-feeds.md'),
             ),
             _aboutTile(
+              // Юр-слой экосистемы (Task 200): лаунчер показывает карточки
+              // проектов и живые данные — правовая рамка общая, своя
+              // отдельной страницы у лаунчера нет, ведём на канон.
+              'Условия и дисклеймер',
+              'экосистема — информационные сервисы «как есть», не ветеринарная консультация',
+              onTap: () => LaunchService.openUrl(
+                  'https://shray77.github.io/terms.html'),
+            ),
+            _aboutTile(
               'Сделать домашним экраном',
               'тап — пошаговая инструкция',
               onTap: _showHomeScreenDialog,
