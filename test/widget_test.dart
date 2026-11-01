@@ -7,7 +7,10 @@ void main() {
     expect(ThiStatus.of(64.5).label, 'норма');
     expect(ThiStatus.of(69).label, 'внимание');
     expect(ThiStatus.of(73).label, 'стресс');
-    expect(ThiStatus.of(81).label, 'экстрим');
+    // 80–89 и >=90 — раздельные зоны источника (thi.ts: тяжёлый/критический).
+    expect(ThiStatus.of(81).label, 'тяжёлый');
+    expect(ThiStatus.of(89.9).label, 'тяжёлый');
+    expect(ThiStatus.of(90).label, 'критический');
   });
 
   test('OutlookSlice парсится и находит станцию', () {

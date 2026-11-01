@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../theme/ds.dart';
 
-/// Статус THI (шкала стресса КРС, как в метео-радаре).
-/// Цвета — семантика vet-ds v2.3 (тёмные значения, AA на графите).
+/// Статус THI (шкала стресса КРС, 5 зон как в метео-радаре: 68/72/80/90).
+/// Рубрики ≥80 — источника (vet-meteo thi.ts: 80–89 «тяжёлый», ≥90
+/// «критический»; IFAS AN356: Moderate-to-Severe / Severe).
+/// Цвета — семантика vet-ds (тёмные значения, AA на графите); верхние
+/// две зоны — одно красное семейство DS, как #d95f2b/#c0392b в веб-радаре.
 class ThiStatus {
   final String label;
   final Color color;
   const ThiStatus(this.label, this.color);
 
   static ThiStatus of(double thi) {
-    if (thi >= 80) return const ThiStatus('экстрим', Ds.red);
+    if (thi >= 90) return const ThiStatus('критический', Ds.red);
+    if (thi >= 80) return const ThiStatus('тяжёлый', Ds.red);
     if (thi >= 72) return const ThiStatus('стресс', Ds.orange);
     if (thi >= 68) return const ThiStatus('внимание', Ds.amber);
     return const ThiStatus('норма', Ds.green);
@@ -20,6 +24,9 @@ class ThiStatus {
 /// Статус CCI (Comprehensive Climate Index, Mader 2010 err. 2011) — комфорт в °C.
 /// Пороги OK Mesonet 2016: -10..30 термонейтрально, >=30 жара-осторожно,
 /// >=40 опасная жара, <=-10 холод-осторожно, <=-30 опасный холод.
+/// Осознанное расхождение с веб-радаром (аудит SW-22): тонкая шкала
+/// источника (Mader-стиль) считает 25–30 «жара: лёгкая» — приложение
+/// следует официальным операционным категориям OK Mesonet (комфорт до 30).
 class CciStatus {
   final String label;
   final Color color;
