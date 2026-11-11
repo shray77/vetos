@@ -1,7 +1,7 @@
 # VetOS — лаунчер-хаб вет-экосистемы (Flutter)
 
 Android-лаунчер: домашний экран с живым метео-тайлом THI, плитками шести
-проектов ядра и каталогом всей вет-экосистемы shray77 (18 проектов с
+проектов ядра и каталогом всей вет-экосистемы shray77 (20 проектов с
 поиском и разделами). Нажимаешь Home — попадаешь в свою экосистему.
 
 **applicationId:** `ru.shray77.vetos` · v0.6.0 · sideload-APK (release-подпись, апдейты встают поверх)
@@ -36,7 +36,7 @@ DS), часы — serif-дисплей Prata (дисплейная кирилл�
 - **Домашний экран** — часы, метео-карточка (THI станции по умолчанию,
   температура/влажность/ветер/THIadj, статус-цвет по шкале стресса КРС,
   спарк-лайн прогноза на 24 ч с порогами 68/72), сетка из 6 плиток ядра
-  и кнопка «ВСЕ ПРОЕКТЫ · 18».
+  и кнопка «ВСЕ ПРОЕКТЫ · 20».
 - **Каталог «Все проекты»** (v0.4.0) — вся экосистема с поиском и
   разделами Мониторинг / Инструменты / Данные / Лаборатория; у ядра
   метка «на экране», у APK-проектов — статус установки. Открытие —
@@ -95,10 +95,12 @@ DS), часы — serif-дисплей Prata (дисплейная кирилл�
 | vetrecall | VetRecall | Мониторинг | https://shray77.github.io/vetrecall-site/ |
 | vetfecrt | ФЭКРТ | Мониторинг | https://shray77.github.io/vetfecrt-site/ |
 | vettools | VetTools | Инструменты | https://shray77.github.io/vettools/ |
+| biobarrier | БиоБарьер | Инструменты | https://shray77.github.io/biobarrier-site/ |
 | hub | ВетХаб | Данные | https://shray77.github.io/vet-hub/ |
 | digest | Вет-Дайджест | Данные | https://shray77.github.io/vetdigest-site/ |
 | digest-audio | Аудио-дайджест | Данные | https://shray77.github.io/vet-digest-llm/ |
 | rss | RSS-конвейер | Данные | https://shray77.github.io/rss-core-site/ |
+| predisp | Атлас предрасположенностей | Данные | https://shray77.github.io/vetpredis-site/ |
 | pilots | Вет-Пилоты | Лаборатория | https://github.com/shray77/vet-pilots |
 | vetflu-site | VetFlu · витрина | Лаборатория | https://shray77.github.io/vetflu-site/ |
 | vetpetri | ВетПетри | Лаборатория | https://shray77.github.io/vetpetri/ |

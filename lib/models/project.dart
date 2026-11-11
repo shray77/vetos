@@ -68,7 +68,7 @@ class Project {
 }
 
 /// Реестр проектов вет-экосистемы shray77 (v0.4.0: 16 проектов, Task 183: +ФЭКРТ
-/// и ВетПетри — 18).
+/// и ВетПетри — 18; +Атлас предрасположенностей и БиоБарьер — 20).
 ///
 /// Первые шесть — ядро (home: true): их плитки стоят на домашнем экране.
 /// Остальные открываются из каталога «Все проекты» — там поиск и разделы.
@@ -202,6 +202,16 @@ const kProjects = <Project>[
     url: 'https://shray77.github.io/vettools/',
     category: ProjectCategory.tools,
   ),
+  Project(
+    id: 'biobarrier',
+    title: 'БиоБарьер',
+    subtitle: 'Анкета биобезопасности · скоринг 0–100',
+    icon: Icons.shield,
+    color: Color(0xFF2F6B47),
+    kind: ProjectKind.web,
+    url: 'https://shray77.github.io/biobarrier-site/',
+    category: ProjectCategory.tools,
+  ),
 
   // ─── Данные ─────────────────────────────────────────────────────────
   Project(
@@ -242,6 +252,16 @@ const kProjects = <Project>[
     color: Color(0xFF94A3B8),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/rss-core-site/',
+    category: ProjectCategory.data,
+  ),
+  Project(
+    id: 'predisp',
+    title: 'Атлас предрасположенностей',
+    subtitle: 'Что вшито в породу · градация доказательности',
+    icon: Icons.pets,
+    color: Color(0xFFE06A43),
+    kind: ProjectKind.web,
+    url: 'https://shray77.github.io/vetpredis-site/',
     category: ProjectCategory.data,
   ),
 
