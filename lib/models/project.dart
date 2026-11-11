@@ -68,7 +68,8 @@ class Project {
 }
 
 /// Реестр проектов вет-экосистемы shray77 (v0.4.0: 16 проектов, Task 183: +ФЭКРТ
-/// и ВетПетри — 18; +Атлас предрасположенностей и БиоБарьер — 20).
+/// и ВетПетри — 18; +Атлас предрасположенностей и БиоБарьер — 20; Task 236:
+/// +Шкалы боли — 21).
 ///
 /// Первые шесть — ядро (home: true): их плитки стоят на домашнем экране.
 /// Остальные открываются из каталога «Все проекты» — там поиск и разделы.
@@ -210,6 +211,16 @@ const kProjects = <Project>[
     color: Color(0xFF2F6B47),
     kind: ProjectKind.web,
     url: 'https://shray77.github.io/biobarrier-site/',
+    category: ProjectCategory.tools,
+  ),
+  Project(
+    id: 'vetpain',
+    title: 'Шкалы боли',
+    subtitle: 'CMPS-SF собак · FGS кошек · порог анальгезии',
+    icon: Icons.monitor_heart,
+    color: Color(0xFF9E2B52),
+    kind: ProjectKind.web,
+    url: 'https://shray77.github.io/vetpain-site/',
     category: ProjectCategory.tools,
   ),
 
